@@ -6,9 +6,6 @@ const uint8_t rxPin = 2;
 SoftwareSerial gpsSerial(rxPin, txPin); // For Arduino UNO
 Adafruit_GPS GPS(&gpsSerial);
 
-String NMEA_RMC;
-String NMEA_GGA;
-
 void setup() {
   Serial.begin(115200);
 
@@ -25,18 +22,5 @@ void loop() {
 
   if (GPS.newNMEAreceived()) {
     GPS.parse(GPS.lastNMEA());
-
-    char* nmea = GPS.lastNMEA();
-
-    if (strncmp(nmea, "$GNRMC", 6) == 0) {
-        NMEA_RMC = String(nmea);
-        Serial.println(NMEA_RMC);
-    } else if (strncmp(nmea, "$GNGGA", 6) == 0) {
-        NMEA_GGA = String(nmea);
-        Serial.println(NMEA_GGA);
-    }
-
-    Serial.println(NMEA_RMC);
-    Serial.println(NMEA_GGA);
-  }
+    Serial.println(GPS.lastNMEA());
 }
