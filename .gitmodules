@@ -1,0 +1,3 @@
+[submodule "external/ai-thinker-ra08-sdk"]
+	path = external/ai-thinker-ra08-sdk
+	url = https://github.com/Ai-Thinker-Open/Ai-Thinker-LoRaWAN-Ra-08
