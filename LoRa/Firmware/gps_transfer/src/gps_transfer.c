@@ -6,61 +6,17 @@
 #include "timer.h"
 #include "radio.h"
 #include "tremo_system.h"
-#include "external\ai-thinker-ra08-sdk\drivers\peripheral\inc\tremo_uart.h"
-
-#if defined( REGION_AS923 )
-
-#define RF_FREQUENCY                                923000000 // Hz
-
-#elif defined( REGION_AU915 )
+#include "tremo_uart.h"
+#include "tremo_rcc.h"
+#include "tremo_gpio.h"
 
 #define RF_FREQUENCY                                915000000 // Hz
-
-#elif defined( REGION_CN470 )
-
-#define RF_FREQUENCY                                470000000 // Hz
-
-#elif defined( REGION_CN779 )
-
-#define RF_FREQUENCY                                779000000 // Hz
-
-#elif defined( REGION_EU433 )
-
-#define RF_FREQUENCY                                433000000 // Hz
-
-#elif defined( REGION_EU868 )
-
-#define RF_FREQUENCY                                868000000 // Hz
-
-#elif defined( REGION_KR920 )
-
-#define RF_FREQUENCY                                920000000 // Hz
-
-#elif defined( REGION_IN865 )
-
-#define RF_FREQUENCY                                865000000 // Hz
-
-#elif defined( REGION_US915 )
-
-#define RF_FREQUENCY                                915000000 // Hz
-
-#elif defined( REGION_US915_HYBRID )
-
-#define RF_FREQUENCY                                915000000 // Hz
-
-#else
-    #error "Please define a frequency band in the compiler options."
-#endif
-
 #define TX_OUTPUT_POWER                             14        // dBm
-
-#if defined( USE_MODEM_LORA )
-
 #define LORA_BANDWIDTH                              0         // [0: 125 kHz,
                                                               //  1: 250 kHz,
                                                               //  2: 500 kHz,
                                                               //  3: Reserved]
-#define LORA_SPREADING_FACTOR                       7         // [SF7..SF12]
+#define LORA_SPREADING_FACTOR                       10         // [SF7..SF12]
 #define LORA_CODINGRATE                             1         // [1: 4/5,
                                                               //  2: 4/6,
                                                               //  3: 4/7,
@@ -69,19 +25,6 @@
 #define LORA_SYMBOL_TIMEOUT                         0         // Symbols
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
-
-#elif defined( USE_MODEM_FSK )
-
-#define FSK_FDEV                                    25000     // Hz
-#define FSK_DATARATE                                50000     // bps
-#define FSK_BANDWIDTH                               50000   // Hz >> DSB in sx126x
-#define FSK_AFC_BANDWIDTH                           83333   // Hz
-#define FSK_PREAMBLE_LENGTH                         5         // Same for Tx and Rx
-#define FSK_FIX_LENGTH_PAYLOAD_ON                   false
-
-#else
-    #error "Please define a modem in the compiler options."
-#endif
 
 typedef enum
 {
@@ -94,20 +37,17 @@ typedef enum
 }States_t;
 
 #define RX_TIMEOUT_VALUE 1800
-#define BUFFER_SIZE 64
-
-const uint8_t PingMsg[] = "PING";
-const uint8_t PongMsg[] = "PONG";
+#define BUFFER_SIZE 128
 
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
+uint16_t BufferIndex = 0;
+uint16_t TxLength = 0;
 
 volatile States_t State = LOWPOWER;
 
 int8_t RssiValue = 0;
 int8_t SnrValue = 0;
-
-uint32_t ChipId[2] = {0};
 
 /*!
  * Radio events function pointer
@@ -144,13 +84,24 @@ void OnRxError( void );
  */
 int app_start( void )
 {
-    bool isMaster = true;
-    uint8_t i;
-    uint32_t random;
+    /* Serial iniialisation */
 
-    (void)system_get_chip_id(ChipId);
+    // Enable clocks
+    rcc_enable_peripheral_clk(RCC_PERIPHERAL_UART0, true);
+    rcc_enable_peripheral_clk(RCC_PERIPHERAL_GPIOB, true);
 
-    // Radio initialization
+    // Init UART0
+    gpio_set_iomux(GPIOB, GPIO_PIN_0, 1);
+    gpio_set_iomux(GPIOB, GPIO_PIN_1, 1);
+
+    // Config UART0
+    uart_config_t uartConfig;
+    uart_config_init(&uartConfig);
+    uartConfig.baudrate = UART_BAUDRATE_9600;
+    uart_init(UART0, &uartConfig);
+    uart_cmd(UART0, ENABLE);
+
+    /* Radio initialization */
     RadioEvents.TxDone = OnTxDone;
     RadioEvents.RxDone = OnRxDone;
     RadioEvents.TxTimeout = OnTxTimeout;
@@ -161,33 +112,14 @@ int app_start( void )
 
     Radio.SetChannel( RF_FREQUENCY );
 
-#if defined( USE_MODEM_LORA )
-
     Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
-                                   LORA_SPREADING_FACTOR, LORA_CODINGRATE,
-                                   LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
-                                   true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
-
+                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
     Radio.SetRxConfig( MODEM_LORA, LORA_BANDWIDTH, LORA_SPREADING_FACTOR,
-                                   LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
-                                   LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
-                                   0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
-
-#elif defined( USE_MODEM_FSK )
-
-    Radio.SetTxConfig( MODEM_FSK, TX_OUTPUT_POWER, FSK_FDEV, 0,
-                                  FSK_DATARATE, 0,
-                                  FSK_PREAMBLE_LENGTH, FSK_FIX_LENGTH_PAYLOAD_ON,
-                                  true, 0, 0, 0, 3000 );
-
-    Radio.SetRxConfig( MODEM_FSK, FSK_BANDWIDTH, FSK_DATARATE,
-                                  0, FSK_AFC_BANDWIDTH, FSK_PREAMBLE_LENGTH,
-                                  0, FSK_FIX_LENGTH_PAYLOAD_ON, 0, true,
-                                  0, 0,false, true );
-
-#else
-    #error "Please define a frequency band in the compiler options."
-#endif
+                                    LORA_CODINGRATE, 0, LORA_PREAMBLE_LENGTH,
+                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
+                                    0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
 
     Radio.Rx( RX_TIMEOUT_VALUE );
 
@@ -196,105 +128,50 @@ int app_start( void )
         switch( State )
         {
         case RX:
-            if( isMaster == true )
-            {
-                if( BufferSize > 0 )
-                {
-                    if( strncmp( ( const char* )Buffer, ( const char* )PongMsg, 4 ) == 0 )
-                    {
-                        printf("Received: PONG\r\n");
-
-                        // Send the next PING frame
-                        Buffer[0] = 'P';
-                        Buffer[1] = 'I';
-                        Buffer[2] = 'N';
-                        Buffer[3] = 'G';
-                        // We fill the buffer with numbers for the payload
-                        for( i = 4; i < BufferSize; i++ )
-                        {
-                            Buffer[i] = i - 4;
-                        }
-                        DelayMs( 10 );
-                        printf("Sent: PING\r\n");
-                        Radio.Send( Buffer, BufferSize );
-                    }
-                    else if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
-                    { // A master already exists then become a slave
-                        isMaster = false;
-                        Radio.Rx( RX_TIMEOUT_VALUE );
-                    }
-                    else // valid reception but neither a PING or a PONG message
-                    {    // Set device as master ans start again
-                        isMaster = true;
-                        Radio.Rx( RX_TIMEOUT_VALUE );
-                    }
-                }
+            printf("Recieved: ");
+            for (int i = 0; i < BufferSize; i++) {
+                printf("%c", Buffer[i]);
+                uart_send_data(UART0, Buffer[i]);
             }
-            else
-            {
-                if( BufferSize > 0 )
-                {
-                    if( strncmp( ( const char* )Buffer, ( const char* )PingMsg, 4 ) == 0 )
-                    {
-                        printf("Received: PING\r\n");
+            printf("\r\n");
 
-                        // Send the reply to the PONG string
-                        Buffer[0] = 'P';
-                        Buffer[1] = 'O';
-                        Buffer[2] = 'N';
-                        Buffer[3] = 'G';
-                        // We fill the buffer with numbers for the payload
-                        for( i = 4; i < BufferSize; i++ )
-                        {
-                            Buffer[i] = i - 4;
-                        }
-                        DelayMs( 10 );
-                        Radio.Send( Buffer, BufferSize );
-                        printf("Sent: PONG\r\n");
-                    }
-                    else // valid reception but not a PING as expected
-                    {    // Set device as master and start again
-                        isMaster = true;
-                        Radio.Rx( RX_TIMEOUT_VALUE );
-                    }
-                }
-            }
+            Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
         case TX:
+            printf("Sent: ");
+            for (int i = 0; i < TxLength; i++) {
+                printf("%c", Buffer[i]);
+            }
+            printf("\r\n");
+
             Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
         case RX_TIMEOUT:
+            printf("RX timed out\r\n");
+            Radio.Rx( RX_TIMEOUT_VALUE );
+            State = LOWPOWER;
+            break;
         case RX_ERROR:
-            if( isMaster == true )
-            {
-                // Send the next PING frame
-                Buffer[0] = 'P';
-                Buffer[1] = 'I';
-                Buffer[2] = 'N';
-                Buffer[3] = 'G';
-                for( i = 4; i < BufferSize; i++ )
-                {
-                    Buffer[i] = i - 4;
-                }
-                srand( *ChipId );
-                random = ( rand() + 1 ) % 90;
-                DelayMs( random );
-                Radio.Send( Buffer, BufferSize );
-                printf("Sent: PING\r\n");
-            }
-            else
-            {
-                Radio.Rx( RX_TIMEOUT_VALUE );
-            }
+            Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
         case TX_TIMEOUT:
+            printf("TX timed out\r\n");
             Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
         case LOWPOWER:
+            if (uart_get_flag_status(UART0, UART_FLAG_RX_FIFO_EMPTY) == RESET) {
+                Buffer[BufferIndex++] = uart_receive_data(UART0);
+                if (Buffer[BufferIndex - 1] == '\n' || BufferIndex >= BufferSize) {             
+                    TxLength = BufferIndex;
+                    Radio.Send(Buffer, TxLength);
+                    BufferIndex = 0;
+                }
+            }
+            break;
         default:
             // Set low power
             break;
@@ -307,12 +184,20 @@ int app_start( void )
 
 void OnTxDone( void )
 {
+    printf(">>> OnTxDone called\r\n");
     Radio.Sleep( );
     State = TX;
 }
 
 void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
+    printf(">>> OnRxDone called: size=%d, rssi=%d, snr=%d\r\n", size, rssi, snr);
+    if (rssi < -100 || snr < 0) {
+        printf(">>> Signal too weak, ignoring\r\n");
+        Radio.Sleep();
+        Radio.Rx(RX_TIMEOUT_VALUE);
+        return;
+    }
     Radio.Sleep( );
     BufferSize = size;
     memcpy( Buffer, payload, BufferSize );
@@ -323,19 +208,21 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 
 void OnTxTimeout( void )
 {
+    printf(">>> OnRxTimeout called\r\n");
     Radio.Sleep( );
     State = TX_TIMEOUT;
 }
 
 void OnRxTimeout( void )
 {
-    printf("OnRxTimeout\r\n");
+    printf(">>> OnRxTimeout called\r\n");
     Radio.Sleep( );
     State = RX_TIMEOUT;
 }
 
 void OnRxError( void )
 {
+    printf(">>> OnRxError called\r\n");
     Radio.Sleep( );
     State = RX_ERROR;
 }
