@@ -41,8 +41,9 @@ typedef enum
 
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
-uint16_t BufferIndex = 0;
-uint16_t TxLength = 0;
+uint16_t RxBufferSize = 0;      // Size of received data (from OnRxDone)
+uint16_t BufferIndex = 0;       // Current position when collecting UART data
+uint16_t TxLength = 0;          // Size of data being transmitted
 
 volatile States_t State = LOWPOWER;
 
@@ -129,7 +130,7 @@ int app_start( void )
         {
         case RX:
             printf("Recieved: ");
-            for (int i = 0; i < BufferSize; i++) {
+            for (int i = 0; i < RxBufferSize; i++) {
                 printf("%c", Buffer[i]);
                 uart_send_data(UART0, Buffer[i]);
             }
@@ -165,7 +166,7 @@ int app_start( void )
         case LOWPOWER:
             if (uart_get_flag_status(UART0, UART_FLAG_RX_FIFO_EMPTY) == RESET) {
                 Buffer[BufferIndex++] = uart_receive_data(UART0);
-                if (Buffer[BufferIndex - 1] == '\n' || BufferIndex >= BufferSize) {             
+                if (Buffer[BufferIndex - 1] == '\n' || BufferIndex >= BUFFER_SIZE) {             
                     TxLength = BufferIndex;
                     Radio.Send(Buffer, TxLength);
                     BufferIndex = 0;
@@ -199,8 +200,8 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
         return;
     }
     Radio.Sleep( );
-    BufferSize = size;
-    memcpy( Buffer, payload, BufferSize );
+    RxBufferSize = size;
+    memcpy(Buffer, payload, RxBufferSize);
     RssiValue = rssi;
     SnrValue = snr;
     State = RX;
