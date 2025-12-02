@@ -132,7 +132,6 @@ int app_start( void )
             printf("Recieved: ");
             for (int i = 0; i < RxBufferSize; i++) {
                 printf("%c", Buffer[i]);
-                uart_send_data(UART0, Buffer[i]);
             }
             printf("\r\n");
 
