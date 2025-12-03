@@ -13,6 +13,9 @@ SoftwareSerial GPSSerial(GPS_RX, GPS_TX);
 
 Adafruit_GPS GPS(&GPSSerial);
 
+bool transmit = false;
+unsigned long startTime = millis();
+
 void setup() {
   Serial.begin(115200);
 
@@ -31,7 +34,12 @@ void loop() {
 
   if (GPS.newNMEAreceived()) {
     GPS.parse(GPS.lastNMEA());
-    LoRaSerial.println(GPS.lastNMEA());
+    if (millis() - startTime >= 1000) {
+      char transmitString[100];
+      sprintf(transmitString, "Lat: %.2f, Lon: %.2f\r\n", GPS.lat, GPS.lon);
+      LoRaSerial.write(transmitString);
+      startTime = millis();
+    }
   }
 
   if (Serial.available()) {
