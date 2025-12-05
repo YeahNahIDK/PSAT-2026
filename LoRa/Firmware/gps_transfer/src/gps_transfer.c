@@ -149,7 +149,6 @@ int app_start( void )
             State = LOWPOWER;
             break;
         case RX_TIMEOUT:
-            printf("RX timed out\r\n");
             Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
@@ -158,7 +157,6 @@ int app_start( void )
             State = LOWPOWER;
             break;
         case TX_TIMEOUT:
-            printf("TX timed out\r\n");
             Radio.Rx( RX_TIMEOUT_VALUE );
             State = LOWPOWER;
             break;
@@ -173,11 +171,9 @@ int app_start( void )
             }
             break;
         default:
-            // Set low power
             break;
         }
-
-        // Process Radio IRQ
+        
         Radio.IrqProcess( );
     }
 }
