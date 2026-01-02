@@ -48,7 +48,23 @@ int main(void) {
 
 
     // FLIGHT READY TESTS
+
+    // Send lora ping and wait for response
+    // If timed out, REBOOT
     
+    // Read GPS data 50 times
+    // Send this GPS data to the ground station
+    // Wait for SUCCESS or REBOOT transmission from ground station
+
+    // Transmit: Linear acceleration, Angular velocity, angular position
+    // Wait for SUCCESS or REBOOT transmission from ground station
+
+    // Turn on the buzzer for 5s
+    // Wait for SUCCESS or REBOOT transmission from ground station
+
+    // Read barometer data 50 times
+    // Send this barometer data to the ground station
+    // Wait for SUCCESS or REBOOT transmission from ground station
 
     // MAIN LOOP
  
