@@ -1,11 +1,6 @@
-// "pingpong.c" used as template (Found in external modules)
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include "delay.h"
-#include "timer.h"
 #include "radio.h"
-#include "tremo_system.h"
 #include "tremo_uart.h"
 #include "tremo_rcc.h"
 #include "tremo_gpio.h"
@@ -35,9 +30,9 @@ typedef enum
 
 uint16_t BufferSize = BUFFER_SIZE;
 uint8_t Buffer[BUFFER_SIZE];
-uint16_t RxBufferSize = 0;      // Size of received data (from OnRxDone)
-uint16_t BufferIndex = 0;       // Current position when collecting UART data
-uint16_t TxLength = 0;          // Size of data being transmitted
+uint16_t RxBufferSize = 0; // Size of received data (from OnRxDone)
+uint16_t BufferIndex = 0; // Current position when collecting UART data
+uint16_t TxLength = 0; // Size of data being transmitted
 
 volatile States_t State = LOWPOWER;
 
