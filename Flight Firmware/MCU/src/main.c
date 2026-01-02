@@ -32,6 +32,7 @@ int main(void) {
    
     lora_init();             // radio settings
     servo_init();            // sets PWM idle
+    
 
     // SD CARD SETUP
 
@@ -45,6 +46,9 @@ int main(void) {
 
     char buffer[256];
 
+
+    // FLIGHT READY TESTS
+    
 
     // MAIN LOOP
  
