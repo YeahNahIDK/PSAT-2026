@@ -32,6 +32,7 @@ int main(void) {
    
     lora_init();             // radio settings
     servo_init();            // sets PWM idle
+    buzzer_init();           // Sets pin as output
     
 
     // SD CARD SETUP
@@ -49,23 +50,23 @@ int main(void) {
 
     // FLIGHT READY TESTS
 
-    // Confirm tests started
+    // Confirm tests have started
     lora_send("Tests started\n");
 
-    // Update sensors
+    // Check sensor data
     gps_read();
     imu_read();
     baro_update();
 
-    // Turn on the buzzer for 5s
-    buzzer_on();
-    // Wait 5s 
-    buzzer_off();
-
     lora_send(buffer);
+
+    // Check buzzer output
+    buzzer_on();
+    // Wait 5s
+    buzzer_off();
     
-    // Confirm tests complete
-    lora_send("Tests started\n");
+    // Confirm tests are complete
+    lora_send("Tests ended\n");
 
     // MAIN LOOP
  
