@@ -22,6 +22,7 @@ void servo_init(){
 void servo_set_angle(int deg){
 
     // Convert deg (0-180) to microseconds (1000-2000)
+    int usec = (1000/180) * deg + 1000;
     // Convert microseconds to timer counts
     // Update timer compare register 
 
