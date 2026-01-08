@@ -1,17 +1,21 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
+from pathlib import Path
 
+# Getting annoying error, this directly finds the directory
+script_location = Path(__file__).resolve().parent
+file_path = script_location / "test-data.csv"
+
+df = pd.read_csv(file_path)
 ax = plt.figure().add_subplot(projection='3d')
 
-# Plot a sin curve using the x and y axes.
-x = np.random.sample(100) * 100
-y = np.random.sample(100) * 40
-z = np.random.sample(100) * 50
-ax.plot(x, y, z, label='curve in (x, y)')
 
-x_range = x.max() - x.min()
-y_range = y.max() - y.min()
-z_range = z.max() - z.min()
+ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory')
+
+# Makes each axis unit the same size
+x_range = df["Disp_X"].max() - df["Disp_X"].min()
+y_range = df["Disp_Y"].max() - df["Disp_Y"].min()
+z_range = df["Disp_Z"].max() - df["Disp_Z"].min()
 ax.set_box_aspect((x_range, y_range, z_range))
 
 # Make legend, set axes limits and labels
