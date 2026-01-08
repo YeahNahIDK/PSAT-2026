@@ -15,7 +15,7 @@ ax = fig.add_subplot(projection='3d')
 ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory', linewidth=2, alpha=0.8, color="gray")
 
 df['Acc_Mag'] = np.sqrt(df['Acc_X']**2 + df['Acc_Y']**2 + df['Acc_Z']**2)
-sc = ax.scatter(df['Disp_X'], df['Disp_Y'], df['Disp_Z'], c=df['Acc_Mag'], cmap='magma')
+sc = ax.scatter(df['Disp_X'], df['Disp_Y'], df['Disp_Z'], c=df['Acc_Mag'], cmap='plasma', alpha=1)
 
 cbar = fig.colorbar(sc, ax=ax, pad=0.1)
 
