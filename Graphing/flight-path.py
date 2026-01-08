@@ -10,7 +10,7 @@ df = pd.read_csv(file_path)
 ax = plt.figure().add_subplot(projection='3d')
 
 
-ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory')
+ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory', linewidth=4)
 
 # Makes each axis unit the same size
 x_range = df["Disp_X"].max() - df["Disp_X"].min()
@@ -20,9 +20,9 @@ ax.set_box_aspect((x_range, y_range, z_range))
 
 # Make legend, set axes limits and labels
 ax.legend()
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
+ax.set_xlabel('Displacement X')
+ax.set_ylabel('Displacement Y')
+ax.set_zlabel('Displacement Z')
 
 # Customize the view angle so it's easier to see that the scatter points lie
 # on the plane y=0
