@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 # Getting annoying error, this directly finds the directory
@@ -7,10 +8,16 @@ script_location = Path(__file__).resolve().parent
 file_path = script_location / "test-data.csv"
 
 df = pd.read_csv(file_path)
-ax = plt.figure().add_subplot(projection='3d')
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
 
 
-ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory', linewidth=4)
+ax.plot(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], label='Trajectory', linewidth=2, alpha=0.8, color="gray")
+
+df['Acc_Mag'] = np.sqrt(df['Acc_X']**2 + df['Acc_Y']**2 + df['Acc_Z']**2)
+sc = ax.scatter(df['Disp_X'], df['Disp_Y'], df['Disp_Z'], c=df['Acc_Mag'], cmap='magma')
+
+cbar = fig.colorbar(sc, ax=ax, pad=0.1)
 
 # Makes each axis unit the same size
 x_range = df["Disp_X"].max() - df["Disp_X"].min()
