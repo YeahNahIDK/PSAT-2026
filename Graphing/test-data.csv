@@ -1,4 +1,4 @@
-Time(s),Disp_X,Disp_Y,Disp_Z,Vel_X,Vel_Y,Vel_Z,Acc_X,Acc_Y,Acc_Z,Ang_R,Ang_P,Ang_Y,Pressure,Temp
+Time,Disp_X,Disp_Y,Disp_Z,Vel_X,Vel_Y,Vel_Z,Acc_X,Acc_Y,Acc_Z,Ang_R,Ang_P,Ang_Y,Pressure,Temp
 0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,9.8,0.0,0.0,0.0,101325,22.0
 1,0.2,0.1,45,0.5,0.2,85,0.4,0.1,88.5,0.5,1.2,0.2,100780,21.8
 2,0.9,0.4,195,1.2,0.5,185,0.8,0.3,95.2,1.2,2.5,0.5,98900,21.4
