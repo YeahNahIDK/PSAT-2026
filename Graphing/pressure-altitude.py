@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 from pathlib import Path
 
 # Getting annoying error, this directly finds the directory
@@ -12,7 +11,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
 
-ax.plot(df["Time"], df["Pressure"], df["Disp_Z"], linewidth=2, alpha=1, color="Blue")
+ax.plot(df["Time"], df["Pressure"], df["Disp_Z"], label="Pressure", linewidth=2, alpha=1, color="Blue")
 
 # Make legend, set axes limits and labels
 ax.legend()
