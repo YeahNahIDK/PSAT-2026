@@ -53,5 +53,9 @@ dkms.conf
 
 # debug information files
 *.dwo
+<<<<<<< HEAD
 *.SchDoc
 PCB/Payload.PcbDoc
+=======
+/Flight Firmware/LoRa/out
+>>>>>>> 656c62568cdb8f282b3acd07f1228a3a70484162
