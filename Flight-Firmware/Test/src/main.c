@@ -85,11 +85,9 @@ void timer_init(void) {
 
 void clock_init(void) {
     /*
-     * Configure clocks to match your Rust setup:
+     * Configure clocks:
      * - MCLK: 8MHz (DCO)
      * - SMCLK: 8MHz
-     * 
-     * This is simplified - adjust for your needs
      */
     
     // Disable watchdog
