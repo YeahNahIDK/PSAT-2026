@@ -9,7 +9,7 @@
  * Clock: 250kHz SPI from 8MHz SMCLK
  */
 
-#include "spi_manager.h"
+#include "./inc/spi_manager.h"
 
 // ============================================================================
 // PRIVATE VARIABLES
