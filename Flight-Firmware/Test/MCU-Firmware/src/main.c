@@ -152,6 +152,9 @@ int main(void) {
     // Counter for messages
     uint32_t counter = 0;
     uint32_t last_send = 0;
+
+    // TESTING FOR CDR:
+    uart_init(UART_A0, BAUD_9600);
     
     // Main loop - send counter every second
     while (1) {
@@ -187,6 +190,11 @@ int main(void) {
             
             last_send = g_system_tick;
         }
+
+        // TESTING FOR CDR
+        uart_write_string(UART_A0, "PIN\r\n");
+
+        delay_ms(500);
     }
 }
 
