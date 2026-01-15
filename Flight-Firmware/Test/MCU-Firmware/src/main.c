@@ -55,11 +55,11 @@ void timer_init(void) {
      * - Use SMCLK / 8 = 1MHz
      * - Count to 1000 = 1ms
      */
-    TA0CCR0 = 1000 - 1;              // 1ms period at 1MHz
-    TA0CTL = TASSEL__SMCLK |         // Use SMCLK
+    TB0CCR0 = 1000 - 1;              // 1ms period at 1MHz
+    TB0CTL = TBSSEL__SMCLK |         // Use SMCLK
              ID__8 |                 // Divide by 8
              MC__UP;                 // Up mode
-    TA0CCTL0 = CCIE;                 // Enable interrupt
+    TB0CCTL0 = CCIE;                 // Enable interrupt
     
     __enable_interrupt();            // Enable global interrupts (GIE bit)
 }
@@ -188,8 +188,6 @@ int main(void) {
             last_send = g_system_tick;
         }
     }
-    
-    return 0;
 }
 
 // ============================================================================
@@ -200,10 +198,10 @@ int main(void) {
  * This ISR runs every 1ms and increments g_system_tick
  */
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector = TIMER0_A0_VECTOR
-__interrupt void Timer_A0_ISR(void)
+#pragma vector = TIMER0_B0_VECTOR
+__interrupt void Timer_B0_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMER0_A0_VECTOR))) Timer_A0_ISR (void)
+void __attribute__ ((interrupt(TIMER0_B0_VECTOR))) Timer_B0_ISR (void)
 #else
 #error Compiler not supported!
 #endif
