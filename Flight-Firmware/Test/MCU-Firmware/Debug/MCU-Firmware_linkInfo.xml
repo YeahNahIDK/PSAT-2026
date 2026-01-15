@@ -2,7 +2,7 @@
 <link_info>
    <banner>MSP430 Linker PC v21.6.1.LTS</banner>
    <copyright>Copyright (c) 2003-2018 Texas Instruments Incorporated</copyright>
-   <link_time>0x696883d9</link_time>
+   <link_time>0x69688fbb</link_time>
    <link_errors>0x1</link_errors>
    <output_file>MCU-Firmware.out</output_file>
    <entry_point>
@@ -19,25 +19,325 @@
       <input_file id="fl-3">
          <path>.\src\</path>
          <kind>object</kind>
+         <file>gps.obj</file>
+         <name>gps.obj</name>
+      </input_file>
+      <input_file id="fl-4">
+         <path>.\src\</path>
+         <kind>object</kind>
          <file>lora.obj</file>
          <name>lora.obj</name>
       </input_file>
-      <input_file id="fl-4">
+      <input_file id="fl-5">
          <path>.\src\</path>
          <kind>object</kind>
          <file>main.obj</file>
          <name>main.obj</name>
       </input_file>
-      <input_file id="fl-5">
+      <input_file id="fl-6">
          <path>.\src\</path>
          <kind>object</kind>
          <file>spi_manager.obj</file>
          <name>spi_manager.obj</name>
       </input_file>
-      <input_file id="fl-9">
+      <input_file id="fl-7">
+         <path>.\src\</path>
+         <kind>object</kind>
+         <file>uart_manager.obj</file>
+         <name>uart_manager.obj</name>
+      </input_file>
+      <input_file id="fl-b">
          <kind>object</kind>
          <file>&lt;internal&gt;</file>
          <name>&lt;internal&gt;</name>
+      </input_file>
+      <input_file id="fl-26">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>fs_add.asm.obj</name>
+      </input_file>
+      <input_file id="fl-27">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>cvtdf.c.obj</name>
+      </input_file>
+      <input_file id="fl-28">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>fs_div.asm.obj</name>
+      </input_file>
+      <input_file id="fl-29">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>div16s.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2a">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>div16u.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2b">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>div32u.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2c">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult16.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2d">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult16_f5hw.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2e">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult32.asm.obj</name>
+      </input_file>
+      <input_file id="fl-2f">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult32_f5hw.asm.obj</name>
+      </input_file>
+      <input_file id="fl-30">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult64_f5hw.asm.obj</name>
+      </input_file>
+      <input_file id="fl-31">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult1632_f5hw.asm.obj</name>
+      </input_file>
+      <input_file id="fl-32">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult3264_f5hw.asm.obj</name>
+      </input_file>
+      <input_file id="fl-33">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>fs_neg.asm.obj</name>
+      </input_file>
+      <input_file id="fl-34">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>lsl32.asm.obj</name>
+      </input_file>
+      <input_file id="fl-35">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>lsr32.asm.obj</name>
+      </input_file>
+      <input_file id="fl-36">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>lsr64.c.obj</name>
+      </input_file>
+      <input_file id="fl-37">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>atof.c.obj</name>
+      </input_file>
+      <input_file id="fl-38">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>atoi.c.obj</name>
+      </input_file>
+      <input_file id="fl-39">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>ctype.c.obj</name>
+      </input_file>
+      <input_file id="fl-3a">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>memcpy.c.obj</name>
+      </input_file>
+      <input_file id="fl-3b">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>memset.c.obj</name>
+      </input_file>
+      <input_file id="fl-3c">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strchr.c.obj</name>
+      </input_file>
+      <input_file id="fl-3d">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strlen.c.obj</name>
+      </input_file>
+      <input_file id="fl-3e">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strncmp.c.obj</name>
+      </input_file>
+      <input_file id="fl-3f">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strncpy.c.obj</name>
+      </input_file>
+      <input_file id="fl-40">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strtod.c.obj</name>
+      </input_file>
+      <input_file id="fl-41">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>addd.c.obj</name>
+      </input_file>
+      <input_file id="fl-42">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>cmpd.c.obj</name>
+      </input_file>
+      <input_file id="fl-43">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>divd.c.obj</name>
+      </input_file>
+      <input_file id="fl-44">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>frcdivd.c.obj</name>
+      </input_file>
+      <input_file id="fl-45">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mpyd.c.obj</name>
+      </input_file>
+      <input_file id="fl-46">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>frcmpyd.c.obj</name>
+      </input_file>
+      <input_file id="fl-47">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult64.asm.obj</name>
+      </input_file>
+      <input_file id="fl-48">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult1632.asm.obj</name>
+      </input_file>
+      <input_file id="fl-49">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>mult3264.asm.obj</name>
+      </input_file>
+      <input_file id="fl-4a">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>negd.c.obj</name>
+      </input_file>
+      <input_file id="fl-4b">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>lsl64.c.obj</name>
+      </input_file>
+      <input_file id="fl-4c">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>asr32.asm.obj</name>
+      </input_file>
+      <input_file id="fl-4d">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>asr64.c.obj</name>
+      </input_file>
+      <input_file id="fl-4e">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>abs.c.obj</name>
+      </input_file>
+      <input_file id="fl-4f">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>errno.c.obj</name>
+      </input_file>
+      <input_file id="fl-50">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>s_scalbn.c.obj</name>
+      </input_file>
+      <input_file id="fl-51">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>s_copysign.c.obj</name>
+      </input_file>
+      <input_file id="fl-52">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strtok.c.obj</name>
+      </input_file>
+      <input_file id="fl-53">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strcspn.c.obj</name>
+      </input_file>
+      <input_file id="fl-54">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>strspn.c.obj</name>
+      </input_file>
+      <input_file id="fl-55">
+         <path>C:\ti\ccs2040\ccs\tools\compiler\ti-cgt-msp430_21.6.1.LTS\lib\</path>
+         <kind>archive</kind>
+         <file>rts430x_sc_sd_eabi.lib</file>
+         <name>toupper.c.obj</name>
       </input_file>
    </input_file_list>
    <object_component_list>
@@ -325,19 +625,19 @@
          <value>0x200</value>
          <object_component_ref idref="oc-3"/>
       </symbol>
-      <symbol id="sm-27">
+      <symbol id="sm-59">
          <name>WDTCTL</name>
          <value>0x0</value>
       </symbol>
-      <symbol id="sm-28">
+      <symbol id="sm-5a">
          <name>P1OUT</name>
          <value>0x0</value>
       </symbol>
-      <symbol id="sm-29">
+      <symbol id="sm-5b">
          <name>P1DIR</name>
          <value>0x0</value>
       </symbol>
-      <symbol id="sm-2a">
+      <symbol id="sm-5c">
          <name>PM5CTL0</name>
          <value>0x0</value>
       </symbol>

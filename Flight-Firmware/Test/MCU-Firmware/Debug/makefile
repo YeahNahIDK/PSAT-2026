@@ -11,9 +11,11 @@ GEN_CMDS__FLAG :=
 
 ORDERED_OBJS += \
 "./msp430fr235x_1.obj" \
+"./src/gps.obj" \
 "./src/lora.obj" \
 "./src/main.obj" \
 "./src/spi_manager.obj" \
+"./src/uart_manager.obj" \
 $(GEN_CMDS__FLAG) \
 -lfrwp_init.a \
 -llibc.a \
@@ -140,8 +142,8 @@ MCU-Firmware.out: $(OBJS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "msp430fr235x_1.obj" "src\lora.obj" "src\main.obj" "src\spi_manager.obj" 
-	-$(RM) "src\lora.d" "src\main.d" "src\spi_manager.d" 
+	-$(RM) "msp430fr235x_1.obj" "src\gps.obj" "src\lora.obj" "src\main.obj" "src\spi_manager.obj" "src\uart_manager.obj" 
+	-$(RM) "src\gps.d" "src\lora.d" "src\main.d" "src\spi_manager.d" "src\uart_manager.d" 
 	-$(RM) "msp430fr235x_1.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

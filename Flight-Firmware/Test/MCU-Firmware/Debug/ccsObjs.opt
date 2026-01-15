@@ -1,6 +1,8 @@
 "./msp430fr235x_1.obj"
+"./src/gps.obj"
 "./src/lora.obj"
 "./src/main.obj"
 "./src/spi_manager.obj"
+"./src/uart_manager.obj"
 -lfrwp_init.a
 -llibc.a
