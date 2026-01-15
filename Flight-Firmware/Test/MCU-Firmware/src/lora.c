@@ -7,8 +7,8 @@
  * Based on Semtech SX1276 datasheet.
  */
 
-#include "lora.h"
-#include "spi_manager.h"
+#include "./inc/lora.h"
+#include "./inc/spi_manager.h"
 #include <string.h>
 
 // ============================================================================

@@ -1,25 +1,10 @@
-/*
- * ============================================================================
- * MSP430 LORA TEST PROGRAM
- * ============================================================================
- * 
- * Goal: Test LoRa communication
- * 
- * This program:
- * 1. Initializes SPI and LoRa
- * 2. Sends "Tests started" message
- * 3. Sends a counter every second
- * 4. Blinks LED on successful transmission
- */
-
 #include <msp430.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 
-#include "spi_manager.h"
-#include "lora.h"
+#include "./inc/spi_manager.h"
+#include "./inc/lora.h"
 
 // ============================================================================
 // GLOBAL VARIABLES
@@ -32,7 +17,7 @@ volatile uint32_t g_system_tick = 0;
 // LED CONTROL (for visual feedback)
 // ============================================================================
 
-// Assuming LED on P2.0 (adjust based on your hardware)
+// Assuming LED on P2.0
 #define LED_PORT    P2OUT
 #define LED_DIR     P2DIR
 #define LED_PIN     BIT0
@@ -66,17 +51,17 @@ void timer_init(void) {
      * Configure Timer_A0 to interrupt every 1ms
      * This increments g_system_tick
      * 
-     * Assuming 8MHz SMCLK (from your Rust config):
+     * With 8MHz SMCLK:
      * - Use SMCLK / 8 = 1MHz
      * - Count to 1000 = 1ms
      */
     TA0CCR0 = 1000 - 1;              // 1ms period at 1MHz
     TA0CTL = TASSEL__SMCLK |         // Use SMCLK
-             ID__8 |                  // Divide by 8
-             MC__UP;                  // Up mode
+             ID__8 |                 // Divide by 8
+             MC__UP;                 // Up mode
     TA0CCTL0 = CCIE;                 // Enable interrupt
     
-    __enable_interrupt();             // Enable global interrupts
+    __enable_interrupt();            // Enable global interrupts (GIE bit)
 }
 
 // ============================================================================
@@ -93,19 +78,36 @@ void clock_init(void) {
     // Disable watchdog
     WDTCTL = WDTPW | WDTHOLD;
     
-    // Configure PMM
-    PM5CTL0 &= ~LOCKLPM5;  // Disable GPIO power-on default high-impedance
+    // Disable GPIO power-on default high-impedance
+    PM5CTL0 &= ~LOCKLPM5;
     
-    // Set DCO to 8MHz
-    CSCTL0_H = CSKEY_H;                // Unlock CS registers
-    CSCTL1 = DCOFSEL_3;                // Set DCO to 8MHz
-    CSCTL2 = SELA__VLOCLK |            // ACLK = VLO
-             SELS__DCOCLK |            // SMCLK = DCO
-             SELM__DCOCLK;             // MCLK = DCO
-    CSCTL3 = DIVA__1 |                 // ACLK divider = 1
-             DIVS__1 |                 // SMCLK divider = 1
-             DIVM__1;                  // MCLK divider = 1
-    CSCTL0_H = 0;                      // Lock CS registers
+    // Configure one FRAM waitstate as required by the device datasheet for MCLK
+    // operation beyond 8MHz _before_ configuring the clock system.
+    FRCTL0 = FRCTLPW | NWAITS_1;
+    
+    // Clock System Setup
+    // Per Device Errata set divider to 4 before changing frequency to
+    // prevent out of spec operation from overshoot transient
+    __bis_SR_register(SCG0);                // Disable FLL
+    CSCTL3 |= SELREF__REFOCLK;              // Set REFO as FLL reference source
+    CSCTL0 = 0;                             // Clear DCO settings
+    CSCTL1 &= ~(DCORSEL_7);                 // Clear DCO frequency select bits
+    CSCTL1 |= DCORSEL_3;                    // Set DCO = 8MHz
+    CSCTL2 = FLLD_0 + 243;                  // DCOCLKDIV = 8MHz
+    __delay_cycles(3);
+    __bic_SR_register(SCG0);                // Enable FLL
+    
+    // Wait for FLL to stabilize
+    while(CSCTL7 & (FLLUNLOCK0 | FLLUNLOCK1));
+    
+    // Select clock sources
+    CSCTL4 = SELMS__DCOCLKDIV |             // MCLK = DCOCLKDIV (8MHz)
+             SELA__REFOCLK;                  // ACLK = REFO (32768 Hz)
+    
+    // Set all dividers to 1
+    CSCTL5 = DIVS__1 |                      // SMCLK divider = 1
+             DIVM__1 |                      // MCLK divider = 1  
+             DIVA__1;                        // ACLK divider = 1
 }
 
 // ============================================================================
@@ -155,15 +157,32 @@ int main(void) {
     while (1) {
         // Send message every 1000ms
         if ((g_system_tick - last_send) >= 1000) {
-            // Format message
-            char msg[32];
-            snprintf(msg, sizeof(msg), "Count: %lu\n", counter);
+            // Simple message without printf
+            char msg[20];
+            
+            // Manual conversion of counter to string
+            uint8_t len = 0;
+            msg[len++] = 'C';
+            msg[len++] = 'o';
+            msg[len++] = 'u';
+            msg[len++] = 'n';
+            msg[len++] = 't';
+            msg[len++] = ':';
+            msg[len++] = ' ';
+            
+            // Convert number to ASCII (simple method for small numbers)
+            if (counter >= 100) msg[len++] = '0' + (counter / 100) % 10;
+            if (counter >= 10) msg[len++] = '0' + (counter / 10) % 10;
+            msg[len++] = '0' + counter % 10;
+            msg[len++] = '\n';
+            msg[len] = '\0';
             
             // Send via LoRa
-            if (lora_send((uint8_t*)msg, strlen(msg))) {
+            if (lora_send((uint8_t*)msg, len)) {
                 // Success - toggle LED
                 led_toggle();
                 counter++;
+                if (counter > 999) counter = 0;  // Reset after 999
             }
             
             last_send = g_system_tick;

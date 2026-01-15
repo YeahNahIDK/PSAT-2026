@@ -1,7 +1,6 @@
 "./msp430fr235x_1.obj"
 "./src/lora.obj"
 "./src/main.obj"
-"./src/main_OLD.obj"
 "./src/spi_manager.obj"
 "../lnk_msp430fr2355.cmd"
 -lfrwp_init.a
