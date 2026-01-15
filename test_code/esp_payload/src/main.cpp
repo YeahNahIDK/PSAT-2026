@@ -5,7 +5,7 @@
 #include "app/app_state.h"
 #include "app/tasks.h"
 
-void setup() {
+/*void setup() {
   Serial.begin(115200);
 
   // ---------- I2C ----------
@@ -32,4 +32,52 @@ void setup() {
 void loop() {
   // Intentionally empty.
   // FreeRTOS tasks run everything.
+}
+*/
+
+// test selector 
+
+#include <Arduino.h>
+#include "config.h"
+
+// Each test provides a start function
+void testServoUartStart();
+void testLoRaUartStart();
+void testSensorsStart();
+void testSdStart();
+void testAllStart();
+
+void setup() {
+  Serial.begin(BAUD_DEBUG);
+  vTaskDelay(pdMS_TO_TICKS(200));
+  Serial.println("\n=== PSAT Payload Test Harness ===");
+
+#if defined(TEST_MODE_SERVO_UART)
+  Serial.println("Boot mode: TEST_MODE_SERVO_UART");
+  testServoUartStart();
+
+#elif defined(TEST_MODE_LORA_UART)
+  Serial.println("Boot mode: TEST_MODE_LORA_UART");
+  testLoRaUartStart();
+
+#elif defined(TEST_MODE_SENSORS)
+  Serial.println("Boot mode: TEST_MODE_SENSORS");
+  testSensorsStart();
+
+#elif defined(TEST_MODE_SD)
+  Serial.println("Boot mode: TEST_MODE_SD");
+  testSdStart();
+
+#elif defined(TEST_MODE_ALL)
+  Serial.println("Boot mode: TEST_MODE_ALL");
+  testAllStart();
+
+#else
+  Serial.println("ERROR: No TEST_MODE_* defined in platformio.ini");
+#endif
+}
+
+void loop() {
+  // Intentionally empty: tests run via FreeRTOS tasks.
+  vTaskDelay(pdMS_TO_TICKS(1000));
 }
