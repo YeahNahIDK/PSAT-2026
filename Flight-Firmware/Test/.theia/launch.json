@@ -22,6 +22,28 @@
                     ]
                 }
             ]
+        },
+        {
+            "name": "MCU-DEVBOARD",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "MCU-DEVBOARD",
+                "resourceId": "/MCU-DEVBOARD"
+            },
+            "connections": [
+                {
+                    "name": "TI MSP430 USB1",
+                    "cores": [
+                        {
+                            "name": "MSP430",
+                            "debuggerSettings": {
+                                "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n<PropertyValues/>\n"
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
