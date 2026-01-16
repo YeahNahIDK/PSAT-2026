@@ -4,5 +4,6 @@
 "./src/main.obj"
 "./src/spi_manager.obj"
 "./src/uart_manager.obj"
--lfrwp_init.a
+"../lnk_msp430fr2433.cmd"
 -llibc.a
+-llibmath.a
