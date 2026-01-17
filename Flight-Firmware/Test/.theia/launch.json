@@ -24,12 +24,12 @@
             ]
         },
         {
-            "name": "MCU-DEVBOARD",
+            "name": "MCU - DEVBOARD TEST",
             "type": "ccs-debug",
             "request": "launch",
             "projectInfo": {
-                "name": "MCU-DEVBOARD",
-                "resourceId": "/MCU-DEVBOARD"
+                "name": "MCU - DEVBOARD TEST",
+                "resourceId": "/MCU - DEVBOARD TEST"
             },
             "connections": [
                 {
