@@ -112,21 +112,6 @@
    {
       "directory" : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/Debug",
       "command"   : "clang++ -I\"C:/ti/ccs2040/ccs/ccs_base/msp430/include\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/driverlib/MSP430FR2xx_4xx\" -I\"C:/ti/ccs2040/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR2433__ -xc",
-      "file"      : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/src/gps.c"
-   },
-   {
-      "directory" : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/Debug",
-      "command"   : "clang++ -I\"C:/ti/ccs2040/ccs/ccs_base/msp430/include\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/driverlib/MSP430FR2xx_4xx\" -I\"C:/ti/ccs2040/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR2433__ -xc",
-      "file"      : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/src/lora.c"
-   },
-   {
-      "directory" : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/Debug",
-      "command"   : "clang++ -I\"C:/ti/ccs2040/ccs/ccs_base/msp430/include\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/driverlib/MSP430FR2xx_4xx\" -I\"C:/ti/ccs2040/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR2433__ -xc",
       "file"      : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/src/main.c"
-   },
-   {
-      "directory" : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/Debug",
-      "command"   : "clang++ -I\"C:/ti/ccs2040/ccs/ccs_base/msp430/include\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST\" -I\"C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/driverlib/MSP430FR2xx_4xx\" -I\"C:/ti/ccs2040/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430FR2433__ -xc",
-      "file"      : "C:/Users/reidd/Downloads/GitHub/PSAT-2026/Flight-Firmware/Test/MCU - DEVBOARD TEST/src/uart_manager.c"
    }
 ]

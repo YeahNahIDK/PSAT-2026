@@ -40,6 +40,8 @@ void loop() {
       LoRaSerial.write(transmitString);
       startTime = millis();
     }
+  } else {
+    LoRaSerial.write("No sentence yet\r\n");
   }
 
   if (Serial.available()) {
