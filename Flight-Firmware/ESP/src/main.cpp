@@ -35,13 +35,11 @@ void lora_test() {
     }
 }
 
-extern "C" void app_main(void)
-{
-    initArduino();
 
-    ESP_LOGI(TAG, "Boot");
+void setup() {
+    ESP_LOGI(TAG, "Booting...");
 
-    // (SCK=18, MISO=20, MOSI=19, SS=10)
+    // For c6: SCK=18, MISO=20, MOSI=19, SS=10
     SPI.begin(18, 20, 19, 10);
 
     ESP_ERROR_CHECK(my_i2c_init());
@@ -49,13 +47,12 @@ extern "C" void app_main(void)
     if (!lora.init()) {
         ESP_LOGE(TAG, "LoRa Init Failed!");
     }
+    delay(1000);
+}
 
+void loop() {
     imu_test();
     lora_test();
 
     delay(1000);
-
-    while (true) {
-        vTaskDelay(pdMS_TO_TICKS(50)); // 20 Hz
-    }
 }

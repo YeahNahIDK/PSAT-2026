@@ -217,8 +217,8 @@ esp_err_t bme680_read(bme_data_t *out)
     float alt_m = pressure_to_altitude_m(press_hpa, g_sea_level_hpa);
     alt_m -= g_altitude_offset_m;
 
-    out->temp_c     = temp_c;
-    out->press_hpa  = press_hpa;
+    out->temp_C     = temp_c;
+    out->press_hPa  = press_hpa;
     out->hum_pct    = hum_pct;
     out->altitude_m = alt_m;
 
