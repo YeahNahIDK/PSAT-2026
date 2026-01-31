@@ -1,5 +1,7 @@
 #include "GPSDriver.h"
 
+static const char *TAG = "GPS";
+
 // Constructor implementation
 // Initialize the HardwareSerial with the UART number passed (0, 1, or 2)
 GPSDriver::GPSDriver(int uartNr, int rxPin, int txPin, long baudRate) 
@@ -11,7 +13,7 @@ bool GPSDriver::begin() {
     // SERIAL_8N1 is the standard configuration for NMEA
     _serial.begin(_baudRate, SERIAL_8N1, _rxPin, _txPin);
 
-    Serial.print("[GPS] Initializing connection...");
+    ESP_LOGI(TAG, "Initializing connection to PA1616D...");
 
     // Test connection
     unsigned long start = millis();
@@ -25,12 +27,10 @@ bool GPSDriver::begin() {
     }
 
     if (trafficDetected) {
-        Serial.println("SUCCESS!");
-        Serial.println("[GPS] Data stream detected.");
+        ESP_LOGI(TAG, "SUCCESS! Data stream detected.");
         return true;
     } else {
-        Serial.println("FAILED!");
-        Serial.println("[GPS] Error: No data received.");
+        ESP_LOGE(TAG, "FAILED! No data received.");
         return false;
     }
 }

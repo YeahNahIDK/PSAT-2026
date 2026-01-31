@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "LoRaHandler.h"
+#include "GPSDriver.h"
 
 extern "C" {
 #include "my_i2c.h"
@@ -13,6 +14,15 @@ extern "C" {
 static const char *TAG = "MAIN";
 
 LoRaHandler lora;
+
+#define GPS_RX_PIN 16
+#define GPS_TX_PIN 17
+#define GPS_UART 1
+GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
+
+// Timers for non-blocking delays
+unsigned long lastTelemetryTime = 0;
+const long TELEMETRY_INTERVAL = 1000;
 
 void imu_test() {
     imu_data_t imu{};
@@ -35,8 +45,17 @@ void lora_test() {
     }
 }
 
+void gps_test() {
+    if (gps.isValid()) {
+            ESP_LOGI(TAG, "GPS: %.6f, %.6f", gps.getLatitude(), gps.getLongitude());
+    } else {
+            ESP_LOGI(TAG, "GPS: No Fix (Sats: %d)", gps.getSatellites());
+    }
+}
 
 void setup() {
+    Serial.begin(115200);
+    
     ESP_LOGI(TAG, "Booting...");
 
     // For c6: SCK=18, MISO=20, MOSI=19, SS=10
@@ -47,12 +66,20 @@ void setup() {
     if (!lora.init()) {
         ESP_LOGE(TAG, "LoRa Init Failed!");
     }
+    if (!gps.begin()) {
+        ESP_LOGE(TAG, "GPS Init Failed!");
+    }
+    
     delay(1000);
 }
 
 void loop() {
-    imu_test();
-    lora_test();
+    gps.update();
+    if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
+        lastTelemetryTime = millis();
 
-    delay(1000);
+        imu_test();
+        lora_test();
+        gps_test();
+    }
 }
