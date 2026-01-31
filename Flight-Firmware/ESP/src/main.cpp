@@ -5,6 +5,7 @@
 
 #include "LoRaHandler.h"
 #include "GPSDriver.h"
+#include "BuzzerDriver.h"
 
 extern "C" {
 #include "my_i2c.h"
@@ -14,6 +15,9 @@ extern "C" {
 static const char *TAG = "MAIN";
 
 LoRaHandler lora;
+
+#define BUZZER_PIN  21
+BuzzerDriver buzzer(BUZZER_PIN);
 
 #define GPS_RX_PIN 16
 #define GPS_TX_PIN 17
@@ -69,15 +73,20 @@ void setup() {
     if (!gps.begin()) {
         ESP_LOGE(TAG, "GPS Init Failed!");
     }
+
+    buzzer.begin();
     
     delay(1000);
 }
 
 void loop() {
     gps.update();
+    buzzer.update();
+
     if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
         lastTelemetryTime = millis();
-
+        
+        buzzer.beep(1, 50);
         imu_test();
         lora_test();
         gps_test();
