@@ -1,6 +1,9 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <Arduino.h>
+
+#include "LoRaHandler.h"
 
 extern "C" {
 #include "my_i2c.h"
@@ -8,6 +11,8 @@ extern "C" {
 }
 
 static const char *TAG = "MAIN";
+
+LoRaHandler lora;
 
 void imu_test() {
     imu_data_t imu{};
@@ -22,14 +27,33 @@ void imu_test() {
     }
 }
 
+void lora_test() {
+    if(lora.send("Ping")) {
+        ESP_LOGI(TAG, "LoRa Ping Sent");
+    } else {
+        ESP_LOGE(TAG, "LoRa Ping Failed");
+    }
+}
+
 extern "C" void app_main(void)
 {
+    initArduino();
+
     ESP_LOGI(TAG, "Boot");
+
+    // (SCK=18, MISO=20, MOSI=19, SS=10)
+    SPI.begin(18, 20, 19, 10);
 
     ESP_ERROR_CHECK(my_i2c_init());
     ESP_ERROR_CHECK(mpu6050_init());
+    if (!lora.init()) {
+        ESP_LOGE(TAG, "LoRa Init Failed!");
+    }
 
     imu_test();
+    lora_test();
+
+    delay(1000);
 
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(50)); // 20 Hz
