@@ -3,22 +3,22 @@
 // Constructor: Initializes the RadioLib Module object
 LoRaHandler::LoRaHandler() {
     // Create the generic Module object used by RadioLib
-    radio = new SX1276(new Module(LORA_CS, LORA_DIO0, LORA_RST, LORA_DIO1));
+    radio = new SX1276(new Module(LORA_CS, LORA_DIO0, LORA_RST, LORA_DIO1, SPI));
 }
 
 bool LoRaHandler::init() {
     Serial.print("[LoRa] Initializing ... ");
 
-    // 1. LoRa default settings:
-    // Frequency: 915.0 MHz
-    // Bandwidth: 125.0 kHz
-    // Spreading Factor: 9
-    // Coding Rate: 7
-    // Sync Word: 0x12 (private network)
-    // Output Power: 10 dBm
-    // Preamble Length: 8 symbols
-    // Amplifier Gain: 0 (automatic)
-    int state = radio->begin(915.0); 
+    // begin(Freq, Bandwidth, SF, CodingRate, SyncWord, Power, Preamble, Gain)  
+    // 1. Frequency: 915.0 MHz
+    // 2. Bandwidth: 125.0 kHz (Matches index 0)
+    // 3. Spreading Factor: 10
+    // 4. Coding Rate: 5 (Matches index 1 which is 4/5)
+    // 5. Sync Word: 0x12 (Standard Private Network)
+    // 6. Power: 14 dBm
+    // 7. Preamble: 8
+    // 8. Gain: 0 (Auto)
+    int state = radio->begin(915.0, 125.0, 10, 5, 0x12, 14, 8, 0);
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");
