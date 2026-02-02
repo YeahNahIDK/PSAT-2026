@@ -8,8 +8,9 @@
 #include "BuzzerDriver.h"
 
 extern "C" {
-#include "my_i2c.h"
-#include "mpu6050.h"
+    #include "my_i2c.h"
+    #include "mpu6050.h"
+    #include "bme680_app.h"
 }
 
 static const char *TAG = "MAIN";
@@ -57,6 +58,18 @@ void gps_test() {
     }
 }
 
+void baro_test() {
+    bme_data_t bme_data;
+    float currentAlt = 0.0;
+
+    if (bme680_read(&bme_data) == ESP_OK) {
+            currentAlt = bme_data.altitude_m;
+            ESP_LOGI(TAG, "Alt: %.2fm  Press: %.2fhPa", bme_data.altitude_m, bme_data.press_hPa);
+    } else {
+            ESP_LOGE(TAG, "BME Read Failed");
+    }
+}
+
 void setup() {
     Serial.begin(115200);
     
@@ -96,6 +109,8 @@ void loop() {
         lastTelemetryTime = millis();
         
         buzzer.beep(1, 50);
+
+        baro_test();
         imu_test();
         lora_test();
         gps_test();
