@@ -44,7 +44,9 @@ void imu_test() {
 }
 
 void lora_test() {
-    if(lora.send("Ping")) {
+    char gps_data[50] = {0};
+    sprintf(gps_data, "Lat: %.6f, Lon: %.6f\n", gps.getLatitude(), gps.getLongitude());
+    if(lora.send(gps_data)) {
         ESP_LOGI(TAG, "LoRa Ping Sent\n");
     } else {
         ESP_LOGE(TAG, "LoRa Ping Failed\n");
