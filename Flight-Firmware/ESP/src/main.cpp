@@ -6,6 +6,7 @@
 #include "LoRaHandler.h"
 #include "GPSDriver.h"
 #include "BuzzerDriver.h"
+#include "Recovery.h"
 
 extern "C" {
     #include "my_i2c.h"
@@ -38,7 +39,7 @@ void imu_test() {
                     imu.ax_g, imu.ay_g, imu.az_g,
                     imu.gx_dps, imu.gy_dps, imu.gz_dps);
     } else {
-        ESP_LOGW(TAG, "MPU read fail: %d\n", (int)e);
+        ESP_LOGE(TAG, "MPU read fail: %d\n", (int)e);
     }
 }
 
@@ -54,7 +55,7 @@ void gps_test() {
     if (gps.isValid()) {
             ESP_LOGI(TAG, "GPS: %.6f, %.6f\n", gps.getLatitude(), gps.getLongitude());
     } else {
-            ESP_LOGI(TAG, "GPS: No Fix (Sats: %d)\n", gps.getSatellites());
+            ESP_LOGE(TAG, "GPS: No Fix (Sats: %d)\n", gps.getSatellites());
     }
 }
 
@@ -68,6 +69,30 @@ void baro_test() {
     } else {
             ESP_LOGE(TAG, "BME Read Failed");
     }
+}
+
+void get_flight_state() {
+    // 1. READ BAROMETER
+    bme_data_t bmeData;
+    float baroAlt = 0.0;
+    bool baroOk = false;
+
+    if (bme680_read(&bmeData) == ESP_OK) {
+            baroAlt = bmeData.altitude_m;
+            baroOk = true; 
+            ESP_LOGI(TAG, "Baro Alt: %.1fm", baroAlt);
+    } else {
+            ESP_LOGE(TAG, "Baro Read Failed!");
+            baroOk = false;
+    }
+
+    // 2. READ GPS
+    float gpsSpeed = gps.tGps.speed.kmph();
+    bool gpsOk = gps.isValid();
+
+    // 3. PASS TO LOGIC
+    bool apogeeReached = true; // CHANGE ONCE SENSOR CODE IS MERGED
+    check_recovery_logic(apogeeReached, baroAlt, baroOk, gpsSpeed, gpsOk, buzzer);
 }
 
 void setup() {
@@ -88,6 +113,11 @@ void setup() {
         ESP_LOGE(TAG, "MPU6050 Init Failed: %s", esp_err_to_name(mpu_err));
     } 
 
+    esp_err_t baro_err = bme680_init();
+    if (baro_err != ESP_OK) {
+        ESP_LOGE(TAG, "BME680 Init Failed: %s", esp_err_to_name(baro_err));
+    } 
+
     if (!lora.init()) {
         ESP_LOGE(TAG, "LoRa Init Failed!\n");
     }
@@ -104,12 +134,13 @@ void setup() {
 void loop() {
     gps.update();
     buzzer.update();
-
+    
     if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
         lastTelemetryTime = millis();
         
-        buzzer.beep(1, 50);
+        buzzer.beep(1, 500);
 
+        get_flight_state();
         baro_test();
         imu_test();
         lora_test();
