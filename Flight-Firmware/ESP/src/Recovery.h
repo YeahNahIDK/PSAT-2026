@@ -2,10 +2,14 @@
 #define RECOVERY_LOGIC_H
 
 #include <Arduino.h>
-#include "BuzzerDriver.h" // We need access to the buzzer to trigger alarms
+#include "BuzzerDriver.h" 
+#include "BMP390Driver.h" // <--- Include your new driver
 
-// Function Prototype
-// We pass the Buzzer by reference (&buzzer) so this logic can control it directly
-void check_recovery_logic(bool apogee_reached, float currentAlt, bool baroValid, float gpsSpeed, bool gpsValid, BuzzerDriver &buzzer);
+// Pass the drivers by reference
+void check_recovery_logic(bool apogee_reached, 
+                          BMP390Driver &altimeter, 
+                          float gpsSpeed, 
+                          bool gpsValid, 
+                          BuzzerDriver &buzzer);
 
 #endif

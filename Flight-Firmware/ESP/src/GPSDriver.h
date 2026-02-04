@@ -7,7 +7,7 @@
 class GPSDriver {
 public:
     // Constructor: accepts UART number, pins, and baud rate
-    GPSDriver(int uartNr, int rxPin, int txPin, long baudRate = 9600);
+    GPSDriver(int uartNr, int rxPin, int txPin, long baudRate = 115200);
 
     // Initializer
     bool begin();
