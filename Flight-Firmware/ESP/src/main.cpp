@@ -8,6 +8,7 @@
 #include "BuzzerDriver.h"
 #include "Recovery.h"
 #include "BMP390Driver.h"
+#include "ICMDriver.h"
 
 static const char *TAG = "MAIN";
 
@@ -22,12 +23,20 @@ BuzzerDriver buzzer(BUZZER_PIN);
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
 BMP390Driver altimeter;
+ICMDriver imu(Wire, 0x69);
 
 // Timers for non-blocking delays
 unsigned long lastTelemetryTime = 0;
 const long TELEMETRY_INTERVAL = 1000;
 
-void imu_test() {}
+void imu_test() {
+    if (imu.update()) {
+        IMUData d = imu.getData();
+        Serial.printf("A: %.2f %.2f %.2f | G: %.2f %.2f %.2f\n", 
+            d.accX, d.accY, d.accZ, 
+            d.gyrX, d.gyrY, d.gyrZ);
+    }
+}
 
 void get_flight_state() {
     // 1. GPS Data
@@ -86,7 +95,11 @@ void setup() {
     }
 
     if (!altimeter.begin()) {
-        ESP_LOGE(TAG, "BMP390 Init Failed! Check address");
+        ESP_LOGE(TAG, "BMP390 Init Failed!");
+    }
+
+    if (!imu.begin()) {
+         ESP_LOGE(TAG, "IMU Init Failed!");
     }
     
     buzzer.begin();
@@ -107,6 +120,7 @@ void loop() {
 
         get_flight_state();
         send_gps();
+        imu_test();
 
         Serial.println(altimeter.getTemperature());
     }
