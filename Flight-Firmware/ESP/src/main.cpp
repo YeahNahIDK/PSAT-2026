@@ -91,7 +91,7 @@ void setup() {
     
     buzzer.begin();
     
-    delay(1000);
+    delay(500);
 
     altimeter.calibrate();
 }
@@ -103,7 +103,7 @@ void loop() {
     if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
         lastTelemetryTime = millis();
         
-        buzzer.beep(1, 500);
+        // buzzer.beep(1, 500);
 
         get_flight_state();
         send_gps();

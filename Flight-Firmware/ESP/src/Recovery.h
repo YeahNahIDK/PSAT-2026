@@ -3,10 +3,14 @@
 
 #include <Arduino.h>
 #include "BuzzerDriver.h" 
-#include "BMP390Driver.h" // <--- Include your new driver
+#include "BMP390Driver.h"
 
-// Pass the drivers by reference
-void check_recovery_logic(bool apogee_reached, 
+enum RecoveryState {
+    REC_IN_AIR,
+    REC_LANDED
+};
+
+RecoveryState check_recovery_logic(bool apogee_reached, 
                           BMP390Driver &altimeter, 
                           float gpsSpeed, 
                           bool gpsValid, 
