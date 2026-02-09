@@ -12,13 +12,13 @@ bool LoRaHandler::init() {
     // begin(Freq, Bandwidth, SF, CodingRate, SyncWord, Power, Preamble, Gain)  
     // 1. Frequency: 915.0 MHz
     // 2. Bandwidth: 125.0 kHz (Matches index 0)
-    // 3. Spreading Factor: 10
+    // 3. Spreading Factor: 8
     // 4. Coding Rate: 5 (Matches index 1 which is 4/5)
     // 5. Sync Word: 0x12 (Standard Private Network)
     // 6. Power: 14 dBm
     // 7. Preamble: 8
     // 8. Gain: 0 (Auto)
-    int state = radio->begin(915.0, 125.0, 10, 5, 0x12, 14, 8, 0);
+    int state = radio->begin(915.0, 125.0, 8, 5, 0x12, 14, 8, 0);
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");
