@@ -45,7 +45,7 @@ void setup() {
 }
 
 void loop() {
-    altimeter.getAltitude();
+    Serial.println(altimeter.getAltitude());
     imu_test();
     delay(500);
 }
