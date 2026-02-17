@@ -14,11 +14,11 @@ static const char *TAG = "MAIN";
 
 LoRaHandler lora;
 
-#define BUZZER_PIN  5
+#define BUZZER_PIN  21
 BuzzerDriver buzzer(BUZZER_PIN);
 
-#define GPS_RX_PIN 1 // Wire to ESP TX
-#define GPS_TX_PIN 0
+#define GPS_RX_PIN 5 // Wire to ESP TX
+#define GPS_TX_PIN 4
 #define GPS_UART 1
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
@@ -76,15 +76,15 @@ void send_gps() {
 }
 
 void setup() {
+    delay(2000);
     Serial.begin(115200);
-    
     Serial.println("Booting...");
 
-    // For c6: SCK=6, MISO=10, MOSI=7, SS=4
-    SPI.begin(6, 10, 7, 4);
+    // For c6: SCK=18, MISO=20, MOSI=19, SS=9 C3 CANT HAVE 18 and 19
+    // SPI.begin(18, 20, 19, 9);
 
     // SDA, SCL
-    Wire.begin(20, 21);
+    Wire.begin(8, 9);
 
     if (!lora.init()) {
         ESP_LOGE(TAG, "LoRa Init Failed!\n");

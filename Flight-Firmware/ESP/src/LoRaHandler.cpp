@@ -18,7 +18,7 @@ bool LoRaHandler::init() {
     // 6. Power: 14 dBm
     // 7. Preamble: 8
     // 8. Gain: 0 (Auto)
-    int state = radio->begin(915.0, 125.0, 8, 5, 0x12, 14, 8, 0);
+    int state = radio->begin(915.0, 125.0, 10, 5, 0x12, 14, 8, 0);
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");

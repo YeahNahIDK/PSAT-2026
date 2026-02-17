@@ -1,0 +1,54 @@
+#include "BMP390Driver.h"
+
+BMP390Driver::BMP390Driver() {
+}
+
+bool BMP390Driver::begin() {
+    if (!bmp.begin_I2C(0x77)) { 
+        if (!bmp.begin_I2C(0x76)) return false;
+    }
+
+    // Settings optimized for flight
+    bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+    bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
+    bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+    bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+
+    return true;
+}
+
+void BMP390Driver::calibrate() {
+    // --- STEP 1: FLUSH THE BUFFER ---
+    // Read and discard 100 readings. 
+    // This drains any old data sitting in the FIFO from the 
+    for (int i = 0; i < 100; i++) {
+        bmp.readAltitude(SEALEVELPRESSURE_HPA);
+        delay(5);
+    }
+
+    // --- STEP 2: CALIBRATE ---
+    float total = 0;
+    int num_readings = 20;
+
+    for (int i = 0; i < num_readings; i++) {
+        total += bmp.readAltitude(SEALEVELPRESSURE_HPA);
+        delay(50);
+    }
+    
+    _groundOffset = total / (double)num_readings;
+}
+
+float BMP390Driver::getAltitude() {
+    // Read raw altitude and subtract the boot offset
+    float rawAlt = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+    return rawAlt - _groundOffset;
+}
+
+float BMP390Driver::getPressure() {
+    // Pa -> hPa
+    return bmp.readPressure() / 100;
+}
+
+float BMP390Driver::getTemperature() {
+    return bmp.readTemperature();
+}

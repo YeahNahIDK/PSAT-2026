@@ -5,8 +5,8 @@
 #include <RadioLib.h>
 
 // Define your PINs here so they are easy to change later
-#define LORA_CS     4
-#define LORA_DIO0   9
+#define LORA_CS     9
+#define LORA_DIO0   2
 #define LORA_RST    3
 #define LORA_DIO1   4
 
