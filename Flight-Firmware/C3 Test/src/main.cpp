@@ -29,7 +29,7 @@ void setup() {
     Serial.begin(115200);
 
     // SDA, SCL
-    Wire.begin(8, 9);
+    Wire.begin(20, 21);
 
     if (!altimeter.begin()) {
         ESP_LOGE(TAG, "BMP390 Init Failed!");
