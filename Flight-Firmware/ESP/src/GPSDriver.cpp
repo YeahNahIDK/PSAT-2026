@@ -10,6 +10,8 @@ GPSDriver::GPSDriver(int uartNr, int rxPin, int txPin, long baudRate)
 
 bool GPSDriver::begin() {
     // Initialize the hardware serial port
+    _serial.setRxBufferSize(1024);
+    
     // SERIAL_8N1 is the standard configuration for NMEA
     _serial.begin(_baudRate, SERIAL_8N1, _rxPin, _txPin);
 
