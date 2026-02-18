@@ -26,7 +26,11 @@ void imu_test() {
 
 void setup() {
     delay(2000);
+
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
+    
+    delay(2000);
 
     // SDA, SCL
     Wire.begin(20, 21);

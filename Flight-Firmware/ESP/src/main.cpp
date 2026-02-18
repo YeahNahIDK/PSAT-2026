@@ -80,8 +80,9 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Booting...");
 
-    // For c6: SCK, MISO, MOSI, SS
-    SPI.begin(6, 10, 7, 4);
+    // SCK, MISO, MOSI, SS
+    // SPI.begin(19, 15, 18, 2); // C6
+    SPI.begin(6, 10, 7, 4); // C3
 
     // SDA, SCL
     Wire.begin(20, 21);
