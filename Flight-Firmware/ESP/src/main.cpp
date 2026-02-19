@@ -19,7 +19,7 @@ BuzzerDriver buzzer(BUZZER_PIN);
 
 #define GPS_RX_PIN 7 // Wire to ESP TX
 #define GPS_TX_PIN 8
-#define GPS_UART 1
+#define GPS_UART 0
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
 BMP390Driver altimeter;
@@ -77,7 +77,10 @@ void send_gps() {
 
 void setup() {
     delay(2000);
+
     Serial.begin(115200);
+    Serial.setDebugOutput(true);
+
     Serial.println("Booting...");
 
     // SCK, MISO, MOSI, SS
