@@ -30,15 +30,19 @@ unsigned long lastTelemetryTime = 0;
 const long TELEMETRY_INTERVAL = 1000;
 
 void imu_test() {
+    char to_send[50] = {0};
     if (imu.update()) {
         IMUData d = imu.getData();
-        Serial.printf("A: %.2f %.2f %.2f | G: %.2f %.2f %.2f\n", 
+        sprintf(to_send, "A: %.2f %.2f %.2f | G: %.2f %.2f %.2f\n", 
             d.accX, d.accY, d.accZ, 
             d.gyrX, d.gyrY, d.gyrZ);
+
+        lora.send(to_send);
     }
 }
 
 void get_flight_state() {
+    char to_send[50] = {0};
     // 1. GPS Data
     float gpsSpeed = gps.tGps.speed.kmph();
     bool gpsOk = gps.isValid();
@@ -52,24 +56,19 @@ void get_flight_state() {
     check_recovery_logic(apogeeReached, altimeter, gpsSpeed, gpsOk, buzzer);
 
     float debugAlt = altimeter.getAltitude();
-    ESP_LOGI(TAG, "BMP390 Alt: %.2fm  GPS Speed: %.2f", debugAlt, gpsSpeed);
+
+    sprintf(to_send, "Alt: %.2fm, Temp: %.2f, GPS Speed: %.2f", debugAlt, altimeter.getTemperature(), gpsSpeed);
+    lora.send(to_send);
 }
 
 void send_gps() {
     char gps_data[50] = {0};
     bool has_fix = false;
 
-    if (gps.isValid()) {
-            ESP_LOGI(TAG, "GPS: %.6f, %.6f\n", gps.getLatitude(), gps.getLongitude());
-            has_fix = true;
-    } else {
-            ESP_LOGE(TAG, "GPS: No Fix (Sats: %d)\n", gps.getSatellites());
-    }
-    
     if (has_fix) {
         sprintf(gps_data, "FIX, %.6f, %.6f\n", gps.getLatitude(), gps.getLongitude());
     } else {
-        sprintf(gps_data, "NOFIX\n");
+        sprintf(gps_data, "NOFIX (Sats: %d)\n", gps.getSatellites());
     }
     
     lora.send(gps_data);
@@ -83,7 +82,7 @@ void setup() {
     // SDA, SCL
     Wire.begin(0, 1);
 
-    char setup_results[100] = {0};
+    char setup_results[50] = {0};
 
     if (!lora.init()) {
         sprintf(setup_results, "LoRa Init Failed!\n");
@@ -136,7 +135,5 @@ void loop() {
         get_flight_state();
         send_gps();
         imu_test();
-
-        Serial.println(altimeter.getTemperature());
     }
 }
