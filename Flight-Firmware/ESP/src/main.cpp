@@ -14,11 +14,11 @@ static const char *TAG = "MAIN";
 
 LoRaHandler lora;
 
-#define BUZZER_PIN  5
+#define BUZZER_PIN  6
 BuzzerDriver buzzer(BUZZER_PIN);
 
-#define GPS_RX_PIN 1 // Wire to ESP TX
-#define GPS_TX_PIN 0
+#define GPS_RX_PIN 7 // Wire to ESP TX
+#define GPS_TX_PIN 8
 #define GPS_UART 1
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
@@ -82,10 +82,12 @@ void setup() {
 
     // SCK, MISO, MOSI, SS
     // SPI.begin(19, 15, 18, 2); // C6
-    SPI.begin(6, 10, 7, 4); // C3
+    SPI.begin(20, 5, 10, 21); // C3
 
     // SDA, SCL
-    Wire.begin(20, 21);
+    Wire.begin(0, 1);
+    
+    delay(2000); // TEMPORARY - To see debug
 
     if (!lora.init()) {
         ESP_LOGE(TAG, "LoRa Init Failed!\n");
@@ -117,7 +119,7 @@ void loop() {
     if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
         lastTelemetryTime = millis();
         
-        // buzzer.beep(1, 500);
+        buzzer.beep(1, 500);
 
         get_flight_state();
         send_gps();

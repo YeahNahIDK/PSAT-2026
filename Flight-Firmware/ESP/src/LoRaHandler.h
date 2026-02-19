@@ -13,8 +13,8 @@
 // #define LORA_DIO1   RADIOLIB_NC
 
 //C3
-#define LORA_CS     4
-#define LORA_DIO0   8
+#define LORA_CS     21
+#define LORA_DIO0   4
 #define LORA_RST    RADIOLIB_NC            
 #define LORA_DIO1   RADIOLIB_NC
 
