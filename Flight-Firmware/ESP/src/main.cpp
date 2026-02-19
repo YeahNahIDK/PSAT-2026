@@ -76,37 +76,46 @@ void send_gps() {
 }
 
 void setup() {
-    delay(2000);
-
-    Serial.begin(115200);
-    Serial.setDebugOutput(true);
-
-    Serial.println("Booting...");
-
     // SCK, MISO, MOSI, SS
     // SPI.begin(19, 15, 18, 2); // C6
     SPI.begin(20, 5, 10, 21); // C3
 
     // SDA, SCL
     Wire.begin(0, 1);
-    
-    delay(2000); // TEMPORARY - To see debug
+
+    char setup_results[100] = {0};
 
     if (!lora.init()) {
-        ESP_LOGE(TAG, "LoRa Init Failed!\n");
+        sprintf(setup_results, "LoRa Init Failed!\n");
+    } else {
+        sprintf(setup_results, "LoRa Init Success!\n");
     }
+    lora.send(setup_results);
+    delay(50);
 
     if (!gps.begin()) {
-        ESP_LOGE(TAG, "GPS Init Failed!\n");
+        sprintf(setup_results, "GPS Init Failed!\n");
+    } else {
+        sprintf(setup_results, "GPS Init Success!\n");
     }
+    lora.send(setup_results);
+    delay(50);
 
     if (!altimeter.begin()) {
-        ESP_LOGE(TAG, "BMP390 Init Failed!");
+        sprintf(setup_results, "BMP390 Init Failed!");
+    } else {
+        sprintf(setup_results, "BMP390 Init Success!\n");
     }
+    lora.send(setup_results);
+    delay(50);
 
     if (!imu.begin()) {
-         ESP_LOGE(TAG, "IMU Init Failed!");
+         sprintf(setup_results, "IMU Init Failed!");
+    } else {
+        sprintf(setup_results, "IMU Init Success!\n");
     }
+    lora.send(setup_results);
+    delay(50);
     
     buzzer.begin();
     
