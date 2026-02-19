@@ -9,6 +9,7 @@
 #include "Recovery.h"
 #include "BMP390Driver.h"
 #include "ICMDriver.h"
+#include "ServoDriver.h"
 
 static const char *TAG = "MAIN";
 
@@ -21,6 +22,9 @@ BuzzerDriver buzzer(BUZZER_PIN);
 #define GPS_TX_PIN 8
 #define GPS_UART 0
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
+
+#define SERVO_PIN 2
+ServoDriver servo(SERVO_PIN);
 
 BMP390Driver altimeter;
 ICMDriver imu(Wire, 0x69);
@@ -117,6 +121,7 @@ void setup() {
     delay(50);
     
     buzzer.begin();
+    servo.begin();
     
     delay(500);
 
@@ -135,5 +140,9 @@ void loop() {
         get_flight_state();
         send_gps();
         imu_test();
+
+        servo.writeAngle(0);
     }
+    delay(500);
+    servo.writeAngle(180);
 }
