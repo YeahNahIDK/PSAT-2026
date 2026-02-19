@@ -10,10 +10,14 @@
 #include "BMP390Driver.h"
 #include "ICMDriver.h"
 #include "ServoDriver.h"
+#include "SdDriver.h"
 
 static const char *TAG = "MAIN";
 
 LoRaHandler lora;
+
+#define SD_CS_PIN 3
+SdDriver sd(SD_CS_PIN);
 
 #define BUZZER_PIN  6
 BuzzerDriver buzzer(BUZZER_PIN);
@@ -119,6 +123,22 @@ void setup() {
     }
     lora.send(setup_results);
     delay(50);
+
+    if (sd.begin(SPI)) { 
+        // Open the file once
+        if (sd.openLog("/flight_data.csv")) {
+            // Write the header and manually force a save
+            sd.logData("Time_ms,Altitude\n");
+            sd.save(); 
+            sprintf(setup_results, "Log opened and header written.");
+        } else {
+            sprintf(setup_results, "SD Could Not Open File");
+        }
+    } else {
+        sprintf(setup_results, "SD Init Failed!");
+    }
+    lora.send(setup_results);
+    delay(50);
     
     buzzer.begin();
     servo.begin();
@@ -140,5 +160,9 @@ void loop() {
         get_flight_state();
         send_gps();
         imu_test();
+
+        // SD Test
+        sd.logData("Hello World\n");
+        sd.closeLog();
     }
 }
