@@ -18,15 +18,13 @@ bool BMP390Driver::begin() {
 }
 
 void BMP390Driver::calibrate() {
-    // --- STEP 1: FLUSH THE BUFFER ---
     // Read and discard 100 readings. 
     // This drains any old data sitting in the FIFO from the 
     for (int i = 0; i < 100; i++) {
         bmp.readAltitude(SEALEVELPRESSURE_HPA);
         delay(5);
     }
-
-    // --- STEP 2: CALIBRATE ---
+    
     float total = 0;
     int num_readings = 20;
 
