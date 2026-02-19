@@ -140,9 +140,5 @@ void loop() {
         get_flight_state();
         send_gps();
         imu_test();
-
-        servo.writeAngle(0);
     }
-    delay(500);
-    servo.writeAngle(180);
 }
