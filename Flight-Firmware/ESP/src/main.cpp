@@ -146,6 +146,7 @@ void setup() {
     delay(500);
 
     altimeter.calibrate();
+    imu.calibrateGyro();
 }
 
 void loop() {

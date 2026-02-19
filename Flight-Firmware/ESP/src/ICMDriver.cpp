@@ -65,9 +65,9 @@ bool ICMDriver::update() {
     _data.accZ = rawAz / 2048.0f;
 
     // Gyro 2000dps scale: Sensitivity is 16.4 LSB/dps
-    _data.gyrX = rawGx / 16.4f;
-    _data.gyrY = rawGy / 16.4f;
-    _data.gyrZ = rawGz / 16.4f;
+    _data.gyrX = (rawGx / 16.4f) - _gyroOffsetX;
+    _data.gyrY = (rawGy / 16.4f) - _gyroOffsetY;
+    _data.gyrZ = (rawGz / 16.4f) - _gyroOffsetZ;
 
     return true;
 }
@@ -89,4 +89,34 @@ uint8_t ICMDriver::readRegister(uint8_t reg) {
     _wire->endTransmission(false);
     _wire->requestFrom(_addr, (uint8_t)1);
     return _wire->read();
+}
+
+void ICMDriver::calibrateGyro() {
+    float totalX = 0, totalY = 0, totalZ = 0;
+    int num_readings = 200;
+
+    // 1. Reset offsets to 0 so they don't skew the raw readings
+    _gyroOffsetX = 0.0f;
+    _gyroOffsetY = 0.0f;
+    _gyroOffsetZ = 0.0f;
+
+    // 2. Discard the first few readings (flushes stale data)
+    for (int i = 0; i < 50; i++) {
+        update();
+        delay(10); // Wait 10ms for the next 100Hz reading
+    }
+
+    // 3. Accumulate readings
+    for (int i = 0; i < num_readings; i++) {
+        update();
+        totalX += _data.gyrX;
+        totalY += _data.gyrY;
+        totalZ += _data.gyrZ;
+        delay(10); 
+    }
+
+    // 4. Calculate and store the averages
+    _gyroOffsetX = totalX / (float)num_readings;
+    _gyroOffsetY = totalY / (float)num_readings;
+    _gyroOffsetZ = totalZ / (float)num_readings;
 }
