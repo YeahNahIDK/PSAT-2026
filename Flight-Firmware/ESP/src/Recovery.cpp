@@ -55,8 +55,6 @@ RecoveryState check_recovery_logic(bool apogee_reached, BMP390Driver &altimeter,
                 if (stableStartTime != 0 && (millis() - stableStartTime > LANDING_DETECT_MS)) {
                     currentState = REC_LANDED;
                     landedTimestamp = millis();
-                    ESP_LOGE(TAG, ">>> LANDING CONFIRMED (Alt: %.1fm) <<<", currentAlt);
-                    buzzer.beep(3, 500); 
                 }
             }
             break; 

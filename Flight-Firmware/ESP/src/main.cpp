@@ -28,8 +28,8 @@ BuzzerDriver buzzer(BUZZER_PIN);
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
 #define SERVO_PIN 2
-#define SERVO_STARTING_ANGLE 0
-#define SERVO_ENDING_ANGLE 15
+#define SERVO_STARTING_ANGLE 15
+#define SERVO_ENDING_ANGLE 0
 ServoDriver servo(SERVO_PIN);
 
 BMP390Driver altimeter;
@@ -38,11 +38,14 @@ ICMDriver imu(Wire, 0x69);
 // Timers for non-blocking delays
 unsigned long lastTelemetryTime = 0;
 const long TELEMETRY_INTERVAL = 1000;
+unsigned long servoTime = 0;
 
 #define APOGEE_THRESHOLD 10 // metres
 bool APOGEE = false;
 float alt_prev;
 float alt_max = 0;
+
+bool landing = false;
 
 void imu_test() {
     char to_send[50] = {0};
@@ -51,8 +54,6 @@ void imu_test() {
         sprintf(to_send, "A: %.2f %.2f %.2f | G: %.2f %.2f %.2f\n", 
             d.accX, d.accY, d.accZ, 
             d.gyrX, d.gyrY, d.gyrZ);
-
-        lora.send(to_send);
     }
 }
 
@@ -72,22 +73,19 @@ RecoveryState get_flight_state() {
 
     float debugAlt = altimeter.getAltitude();
 
-    sprintf(to_send, "Alt: %.2fm, Temp: %.2f, GPS Speed: %.2f", debugAlt, altimeter.getTemperature(), gpsSpeed);
-    lora.send(to_send);
-
     return current_state;
 }
 
 void send_gps() {
     char gps_data[50] = {0};
-    bool has_fix = false;
+    bool has_fix = gps.isValid();
 
     if (has_fix) {
         sprintf(gps_data, "FIX, %.6f, %.6f\n", gps.getLatitude(), gps.getLongitude());
     } else {
         sprintf(gps_data, "NOFIX (Sats: %d)\n", gps.getSatellites());
     }
-    
+
     lora.send(gps_data);
 }
 
@@ -117,6 +115,14 @@ void setup() {
     Wire.begin(0, 1);
 
     char setup_results[100] = {0};
+
+    buzzer.begin();
+
+    // delay(50);
+
+    // buzzer.beep(1, 50);
+
+    // delay(50);
 
     if (!lora.init()) {
         sprintf(setup_results, "LoRa Init Failed!\n");
@@ -166,7 +172,6 @@ void setup() {
     lora.send(setup_results);
     delay(50);
     
-    buzzer.begin();
     servo.begin();
     servo.writeAngle(SERVO_STARTING_ANGLE);
     
@@ -199,8 +204,10 @@ void setup() {
 
     sprintf(setup_results, "Alt: %.2f, Temp: %.2f, Accel: %.2f, Ang: %.2f\n", alt_avg, temp_avg, acc_avg, ang_avg);
     lora.send(setup_results);
-    
+
     alt_prev = altimeter.getAltitude();
+
+    // buzzer.beep(1, 50);
 }
 
 void loop() {
@@ -210,18 +217,24 @@ void loop() {
     if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
         lastTelemetryTime = millis();
         
-        buzzer.beep(1, 500);
+        // buzzer.beep(1, 500);
 
         RecoveryState current_state = get_flight_state();
-        if (current_state = REC_IN_AIR) {
+        if (current_state == REC_IN_AIR) {
             detect_apogee();
         }
+
+        if (current_state == REC_LANDED && !landing) {
+            lora.send("LANDING CONFIRMED");
+            landing = true;
+        }
+
         send_gps();
         imu_test();
         
-        if (APOGEE) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
+        if (APOGEE || millis() - servoTime > 2*TELEMETRY_INTERVAL) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
+            servoTime = millis();
             servo.writeAngle(SERVO_ENDING_ANGLE);
-            buzzer.beep(1, 1000);
         }
 
         // SD Test
