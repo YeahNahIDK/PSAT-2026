@@ -227,6 +227,7 @@ void loop() {
         if (current_state == REC_LANDED && !landing) {
             lora.send("LANDING CONFIRMED");
             landing = true;
+            buzzer.beep(1, 500);
         }
 
         send_gps();
