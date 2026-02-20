@@ -28,6 +28,8 @@ BuzzerDriver buzzer(BUZZER_PIN);
 GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
 
 #define SERVO_PIN 2
+#define SERVO_STARTING_ANGLE 0
+#define SERVO_ENDING_ANGLE 15
 ServoDriver servo(SERVO_PIN);
 
 BMP390Driver altimeter;
@@ -37,6 +39,8 @@ ICMDriver imu(Wire, 0x69);
 unsigned long lastTelemetryTime = 0;
 const long TELEMETRY_INTERVAL = 1000;
 
+#define APOGEE_THRESHOLD 10 // metres
+bool APOGEE = false;
 float alt_prev;
 float alt_max = 0;
 
@@ -93,7 +97,15 @@ void detect_apogee() {
     float alt_curr = altimeter.getAltitude();
     float alt_average = alt_prev * smoothing_factor + alt_curr * (1-smoothing_factor);
 
-    // if (alt_average > alt_max - )
+    if (alt_average > alt_max) {
+        alt_max = alt_average;
+    }
+
+    if (alt_average < alt_max - APOGEE_THRESHOLD) {
+        APOGEE = true;
+    }
+
+    alt_prev = alt_average;
 }
 
 void setup() {
@@ -104,7 +116,7 @@ void setup() {
     // SDA, SCL
     Wire.begin(0, 1);
 
-    char setup_results[50] = {0};
+    char setup_results[100] = {0};
 
     if (!lora.init()) {
         sprintf(setup_results, "LoRa Init Failed!\n");
@@ -156,12 +168,38 @@ void setup() {
     
     buzzer.begin();
     servo.begin();
+    servo.writeAngle(SERVO_STARTING_ANGLE);
     
     delay(500);
 
     altimeter.calibrate();
     imu.calibrateGyro();
 
+    /* Test readings */
+    const int READINGS = 10;
+
+    float alt_sum = 0;
+    float temp_sum = 0;
+    float acc_sum = 0;
+    float ang_sum = 0;
+
+    for (int i = 0; i < READINGS; i++) {
+        IMUData d = imu.getData();
+        alt_sum += altimeter.getAltitude();
+        temp_sum += altimeter.getTemperature();
+
+        acc_sum += sqrt(d.accX * d.accX + d.accY * d.accY + d.accZ + d.accZ);
+        ang_sum += sqrt(d.gyrX * d.gyrX + d.gyrY * d.gyrY + d.gyrZ + d.gyrZ);
+    }
+
+    float alt_avg = alt_sum / READINGS;
+    float temp_avg = temp_sum / READINGS;
+    float acc_avg = acc_sum / READINGS;
+    float ang_avg = ang_sum / READINGS;
+
+    sprintf(setup_results, "Alt: %.2f, Temp: %.2f, Accel: %.2f, Ang: %.2f\n", alt_avg, temp_avg, acc_avg, ang_avg);
+    lora.send(setup_results);
+    
     alt_prev = altimeter.getAltitude();
 }
 
@@ -175,11 +213,16 @@ void loop() {
         buzzer.beep(1, 500);
 
         RecoveryState current_state = get_flight_state();
-        // if (current_state = REC_IN_AIR) {
-        //     detect_apogee();
-        // }
+        if (current_state = REC_IN_AIR) {
+            detect_apogee();
+        }
         send_gps();
         imu_test();
+        
+        if (APOGEE) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
+            servo.writeAngle(SERVO_ENDING_ANGLE);
+            buzzer.beep(1, 1000);
+        }
 
         // SD Test
         sd.logData("Hello World\n");
