@@ -33,7 +33,7 @@ void setup() {
     delay(2000);
 
     // SDA, SCL
-    Wire.begin(20, 21);
+    Wire.begin(0, 1);
 
     if (!altimeter.begin()) {
         ESP_LOGE(TAG, "BMP390 Init Failed!");

@@ -37,6 +37,9 @@ ICMDriver imu(Wire, 0x69);
 unsigned long lastTelemetryTime = 0;
 const long TELEMETRY_INTERVAL = 1000;
 
+float alt_prev;
+float alt_max = 0;
+
 void imu_test() {
     char to_send[50] = {0};
     if (imu.update()) {
@@ -49,7 +52,7 @@ void imu_test() {
     }
 }
 
-void get_flight_state() {
+RecoveryState get_flight_state() {
     char to_send[50] = {0};
     // 1. GPS Data
     float gpsSpeed = gps.tGps.speed.kmph();
@@ -61,12 +64,14 @@ void get_flight_state() {
 
     // 3. PASS TO LOGIC
     // The function will call altimeter.getAltitude() internally.
-    check_recovery_logic(apogeeReached, altimeter, gpsSpeed, gpsOk, buzzer);
+    RecoveryState current_state = check_recovery_logic(apogeeReached, altimeter, gpsSpeed, gpsOk, buzzer);
 
     float debugAlt = altimeter.getAltitude();
 
     sprintf(to_send, "Alt: %.2fm, Temp: %.2f, GPS Speed: %.2f", debugAlt, altimeter.getTemperature(), gpsSpeed);
     lora.send(to_send);
+
+    return current_state;
 }
 
 void send_gps() {
@@ -80,6 +85,15 @@ void send_gps() {
     }
     
     lora.send(gps_data);
+}
+
+void detect_apogee() {
+    float smoothing_factor = 0.1;
+
+    float alt_curr = altimeter.getAltitude();
+    float alt_average = alt_prev * smoothing_factor + alt_curr * (1-smoothing_factor);
+
+    // if (alt_average > alt_max - )
 }
 
 void setup() {
@@ -147,6 +161,8 @@ void setup() {
 
     altimeter.calibrate();
     imu.calibrateGyro();
+
+    alt_prev = altimeter.getAltitude();
 }
 
 void loop() {
@@ -158,7 +174,10 @@ void loop() {
         
         buzzer.beep(1, 500);
 
-        get_flight_state();
+        RecoveryState current_state = get_flight_state();
+        // if (current_state = REC_IN_AIR) {
+        //     detect_apogee();
+        // }
         send_gps();
         imu_test();
 

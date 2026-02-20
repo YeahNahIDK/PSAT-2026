@@ -6,6 +6,7 @@
 #include "BMP390Driver.h"
 
 enum RecoveryState {
+    REC_PRE_LAUNCH,
     REC_IN_AIR,
     REC_LANDED
 };

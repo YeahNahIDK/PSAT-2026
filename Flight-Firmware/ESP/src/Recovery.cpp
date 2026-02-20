@@ -3,15 +3,15 @@
 
 static const char *TAG = "RECOVERY";
 
-// --- CONFIGURATION ---
 #define LANDING_DETECT_MS       10000   // 10 Seconds stable
 #define ALARM_START_DELAY_MS    (15 * 60 * 1000) // 15 Minutes
 #define MAX_GPS_SPEED_KMPH      15.0    
+#define LAUNCH_ALT_THRESHOLD    10 // Metres
 
 RecoveryState check_recovery_logic(bool apogee_reached, BMP390Driver &altimeter, float gpsSpeed, bool gpsValid, BuzzerDriver &buzzer) {
     
     // --- STATE VARIABLES ---
-    static RecoveryState currentState = REC_IN_AIR;
+    static RecoveryState currentState = REC_PRE_LAUNCH;
     
     static unsigned long lastCheckTime = 0;
     static float anchorAltitude = 0;        
@@ -28,6 +28,11 @@ RecoveryState check_recovery_logic(bool apogee_reached, BMP390Driver &altimeter,
     float currentAlt = altimeter.getAltitude();
 
     switch (currentState) {
+        case REC_PRE_LAUNCH: {
+            if (currentAlt > LAUNCH_ALT_THRESHOLD) {
+                currentState = REC_IN_AIR;
+            }
+        }
         case REC_IN_AIR: {
             bool gpsMoving = gpsValid && (gpsSpeed > MAX_GPS_SPEED_KMPH);
             
