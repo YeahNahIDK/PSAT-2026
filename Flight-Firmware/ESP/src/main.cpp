@@ -55,6 +55,8 @@ void imu_test() {
             d.accX, d.accY, d.accZ, 
             d.gyrX, d.gyrY, d.gyrZ);
     }
+
+    lora.send(to_send);
 }
 
 RecoveryState get_flight_state() {
@@ -208,6 +210,8 @@ void setup() {
     alt_prev = altimeter.getAltitude();
 
     // buzzer.beep(1, 50);
+    // delay(1000 * 60 * 2 + 30 * 1000);
+    // lora.send("DROP DROP DROP\n");
 }
 
 void loop() {
@@ -227,19 +231,23 @@ void loop() {
         if (current_state == REC_LANDED && !landing) {
             lora.send("LANDING CONFIRMED");
             landing = true;
-            buzzer.beep(1, 500);
+            // buzzer.beep(1, 500);
         }
 
         send_gps();
         imu_test();
-        
-        if (APOGEE || millis() - servoTime > 2*TELEMETRY_INTERVAL) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
-            servoTime = millis();
-            servo.writeAngle(SERVO_ENDING_ANGLE);
-        }
+
+        char to_send[50] = {0};
+        sprintf(to_send, "Alt: %.2f", altimeter.getAltitude());
+        lora.send(to_send);
 
         // SD Test
         sd.logData("Hello World\n");
         sd.closeLog();
+    }
+
+    if (APOGEE || millis() - servoTime > 2*TELEMETRY_INTERVAL) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
+        servoTime = millis();
+        servo.writeAngle(SERVO_ENDING_ANGLE);
     }
 }
