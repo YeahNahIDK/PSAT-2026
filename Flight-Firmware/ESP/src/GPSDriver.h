@@ -6,13 +6,9 @@
 
 class GPSDriver {
 public:
-    // Constructor: accepts UART number, pins, and baud rate
     GPSDriver(int uartNr, int rxPin, int txPin, long baudRate = 115200);
-
-    // Initializer
     bool begin();
 
-    // Call this repeatedly in the main loop
     // Returns true if a new valid sentence was received
     bool update();
 
@@ -21,9 +17,11 @@ public:
     double getLongitude();
     double getAltitude();
     int getSatellites();
-    bool isValid(); // Do we have a fix?
+    bool isValid();
+    int getHour();
+    int getMinute();
+    int getSecond();
 
-    // Access to raw TinyGPS object if needing specific fields (time, date, etc)
     TinyGPSPlus tGps; 
 
 private:

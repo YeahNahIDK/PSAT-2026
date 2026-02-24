@@ -69,3 +69,16 @@ int GPSDriver::getSatellites() {
 bool GPSDriver::isValid() {
     return tGps.location.isValid();
 }
+
+int GPSDriver::getHour() {
+    // Return the hour if valid, otherwise return 0
+    return tGps.time.isValid() ? tGps.time.hour() : 0;
+}
+
+int GPSDriver::getMinute() {
+    return tGps.time.isValid() ? tGps.time.minute() : 0;
+}
+
+int GPSDriver::getSecond() {
+    return tGps.time.isValid() ? tGps.time.second() : 0;
+}
