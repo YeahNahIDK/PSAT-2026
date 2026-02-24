@@ -11,7 +11,6 @@ public:
     BMP390Driver();
     bool begin();
     
-    // Zero the altitude to current position
     void calibrate(); 
     
     float getAltitude();    // Returns meters (AGL)

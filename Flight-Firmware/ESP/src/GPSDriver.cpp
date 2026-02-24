@@ -2,8 +2,6 @@
 
 static const char *TAG = "GPS";
 
-// Constructor implementation
-// Initialize the HardwareSerial with the UART number passed (0, 1, or 2)
 GPSDriver::GPSDriver(int uartNr, int rxPin, int txPin, long baudRate) 
     : _serial(uartNr), _rxPin(rxPin), _txPin(txPin), _baudRate(baudRate) {
 }
@@ -12,7 +10,6 @@ bool GPSDriver::begin() {
     // Initialize the hardware serial port
     _serial.setRxBufferSize(1024);
     
-    // SERIAL_8N1 is the standard configuration for NMEA
     _serial.begin(_baudRate, SERIAL_8N1, _rxPin, _txPin);
 
     ESP_LOGI(TAG, "Initializing connection to PA1616D...");
@@ -71,7 +68,6 @@ bool GPSDriver::isValid() {
 }
 
 int GPSDriver::getHour() {
-    // Return the hour if valid, otherwise return 0
     return tGps.time.isValid() ? tGps.time.hour() : 0;
 }
 

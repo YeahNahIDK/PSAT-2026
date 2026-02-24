@@ -9,10 +9,8 @@ public:
     GPSDriver(int uartNr, int rxPin, int txPin, long baudRate = 115200);
     bool begin();
 
-    // Returns true if a new valid sentence was received
     bool update();
 
-    // Getters for common data
     double getLatitude();
     double getLongitude();
     double getAltitude();

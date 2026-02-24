@@ -280,11 +280,6 @@ void send_gps() {
     int sats = gps.getSatellites();
     if (sats > 15) sats = 15;
     if (sats < 0) sats = 0;
-
-    // Defaulting to 0 to maintain packet structure
-    int hour = has_fix ? gps.getHour() : 0;
-    int minute = has_fix ? gps.getMinute() : 0;
-    int second = has_fix ? gps.getSecond() : 0;
     
     float lat = has_fix ? gps.getLatitude() : 0.0;
     float lon = has_fix ? gps.getLongitude() : 0.0;
@@ -293,7 +288,7 @@ void send_gps() {
     // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
     sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n", 
             team_char, 
-            hour, minute, second, 
+            gps.getHour(), gps.getMinute(), gps.getSecond(), 
             fix_status, 
             sats, 
             lat, lon, 

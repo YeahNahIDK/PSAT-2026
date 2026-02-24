@@ -1,9 +1,7 @@
 #include "LoRaHandler.h"
 #include "hardware_config.h"
 
-// Constructor: Initializes the RadioLib Module object
 LoRaHandler::LoRaHandler() {
-    // Create the generic Module object used by RadioLib
     radio = new SX1276(new Module(PIN_LORA_CS, PIN_LORA_DIO0, PIN_LORA_RST, PIN_LORA_DIO1, SPI));
 }
 
@@ -31,10 +29,6 @@ bool LoRaHandler::send(String message) {
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");
-        // Optional: print data rate
-        // Serial.print("[LoRa] Datarate:\t");
-        // Serial.print(radio->getDataRate());
-        // Serial.println(" bps");
         return true;
     } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
         Serial.println("Too long!");

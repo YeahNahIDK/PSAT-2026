@@ -10,12 +10,10 @@ struct IMUData {
 
 class ICMDriver {
 public:
-    // addr is usually 0x68 (default) or 0x69
     ICMDriver(TwoWire &wirePort = Wire, uint8_t addr = 0x68);
     
     bool begin();
     
-    // Reads data. Returns true if successful.
     bool update();
     
     IMUData getData() const;
