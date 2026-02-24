@@ -18,22 +18,22 @@
 
 
 /* === INDIVIDUAL COMPONENTS === */
-// GPS (UART)
+// GPS
 #define PIN_GPS_TX              8
 #define PIN_GPS_RX              7
 #define UART_GPS                0
 
-// LoRa Control
+// LoRa
 #define PIN_LORA_DIO0           13 
 #define PIN_LORA_RST            RADIOLIB_NC            
 #define PIN_LORA_DIO1           RADIOLIB_NC
 
-#define LORA_FREQUENCY          915     // MHz
-#define LORA_BANDWIDTH          125     // KHz
-#define LORA_SF                 10      // Spreading Factor
-#define LORA_CR                 5       // Coding Rate: 4/5
+#define LORA_FREQUENCY          915         // MHz
+#define LORA_BANDWIDTH          125         // KHz
+#define LORA_SF                 10          // Spreading Factor
+#define LORA_CR                 5           // Coding Rate: 4/5
 #define LORA_SYNC_WORD          0x12
-#define LORA_POWER              14      // dBm
+#define LORA_POWER              14          // dBm
 #define LORA_PREAMBLE           8
 #define LORA_GAIN               0
 
@@ -50,6 +50,15 @@
 /* === SYSTEM DEFINITIONS === */
 #define SERVO_STARTING_ANGLE    15
 #define SERVO_ENDING_ANGLE      0
+#define SERVO_REL_ALTITUDE      75          // How far below apogee (m)
 #define CALIBRATION_READINGS    10
+#define FLIGHT_STATE_INIT       PRE_LAUNCH
+#define STATE_TRANSITION_ALT    15          // m
+
+/* Polling rates (ms) */
+#define INTERVAL_VERY_SLOW     5000
+#define INTERVAL_SLOW          1000
+#define INTERVAL_FAST          500
+#define INTERVAL_VERY_FAST     100
 
 #endif

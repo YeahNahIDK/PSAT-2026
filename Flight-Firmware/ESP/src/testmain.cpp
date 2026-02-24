@@ -26,10 +26,36 @@ ServoDriver servo(PIN_SERVO);
 BMP390Driver altimeter;
 ICMDriver imu(Wire, ADDRESS_IMU);
 
+enum FlightState {
+    PRE_LAUNCH,
+    ASCENDING,
+    DESCENDING,
+    LANDED
+};
+
+struct TelemetryData {
+    FlightState current_state = FLIGHT_STATE_INIT;
+    float altitude = 0.0f;
+    float apogee = -1;
+    uint32_t landed_time_ms = 0;
+}; TelemetryData flight;
+
+
+/* === Global Definitions === */
+static float gps_last_transmission = 0;
+static float sd_last_write = 0;
+
 
 /* === Prototype Definition === */
 bool log_init_status(bool success, const char* device_name);
 void sensor_test(char *sensor_data);
+float get_altitude();
+void send_gps();
+void sd_write_data();
+float apogee_detect();
+bool stability_check();
+void interval_sd(int time_interval);
+void interval_gps(int time_interval);
 
 
 void setup() {
@@ -69,11 +95,52 @@ void setup() {
         sensor_test(sensor_data);
         lora.send(sensor_data);
     }
-    
+
     buzzer.beep(3, 50);
 }
 
 
+void loop() {
+    flight.altitude = get_altitude();
+
+    switch(flight.current_state) {
+        case PRE_LAUNCH: {
+            interval_gps(INTERVAL_VERY_SLOW);
+
+            if (flight.altitude >= STATE_TRANSITION_ALT) {
+                flight.current_state = ASCENDING;
+            }
+            break;
+        }
+
+        case ASCENDING: {
+            interval_sd(INTERVAL_VERY_FAST);
+            interval_gps(INTERVAL_SLOW);
+
+            flight.apogee = apogee_detect();
+            if (flight.apogee != -1) {
+                flight.current_state = DESCENDING;
+            }
+            break;
+        }
+
+        case DESCENDING: {
+            interval_sd(INTERVAL_FAST);
+            interval_gps(INTERVAL_SLOW);
+            if (flight.apogee - flight.altitude > SERVO_REL_ALTITUDE) {
+                servo.writeAngle(SERVO_ENDING_ANGLE);
+            }
+            
+            if (stability_check()) {
+                flight.current_state = LANDED;
+            }
+            break;
+        }
+    }
+}
+
+
+/* === Setup Functions === */
 bool log_init_status(bool success, const char* device_name) {
     char setup_results[64] = {0};
 
@@ -112,4 +179,21 @@ void sensor_test(char *sensor_data) {
 
     sprintf(sensor_data, "Alt: %.2f, Temp: %.2f, Accel: %.2f, Ang: %.2f\n", 
         altitude_avg, temperature_avg, acceleration_avg, angular_velocity_avg);
+}
+
+
+/* === Loop Functions === */
+void interval_sd(int time_interval) {
+    if (millis() - sd_last_write > time_interval) {
+        sd_write_data();
+        sd_last_write = millis();
+    }
+}
+
+
+void interval_gps(int time_interval) {
+    if (millis() - gps_last_transmission > time_interval) {
+        send_gps();
+        gps_last_transmission = millis();
+    }
 }

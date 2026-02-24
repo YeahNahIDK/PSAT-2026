@@ -126,7 +126,7 @@ void setup() {
 
     // delay(50);
 
-    if (!lora.init()) {
+    if (!lora.begin()) {
         sprintf(setup_results, "LoRa Init Failed!\n");
     } else {
         sprintf(setup_results, "LoRa Init Success!\n");
