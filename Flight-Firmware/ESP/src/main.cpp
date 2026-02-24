@@ -245,25 +245,25 @@ bool apogee_detect() {
     static int below_max_count = 0;
 
     /* Santiy Check */
-    if (abs(velocity) > APOGEE_MAX_VELOCITY) return false;
+    if (abs(velocity) < APOGEE_MAX_VELOCITY) {
+        /* Set Maximum Altitude */
+        if (flight.altitude > flight.max_altitude) {
+            flight.max_altitude = flight.altitude;
+            below_max_count = 0;
+        } else if ((flight.max_altitude - flight.altitude) > APOGEE_DROP_THRESHOLD){
+            below_max_count += 1;
+        } else {
+            below_max_count = 0;  // Handles jitter
+        }
 
-    /* Set Maximum Altitude */
-    if (flight.altitude > flight.max_altitude) {
-        flight.max_altitude = flight.altitude;
-        below_max_count = 0;
-    } else if ((flight.max_altitude - flight.altitude) > APOGEE_DROP_THRESHOLD){
-        below_max_count += 1;
-    } else {
-        below_max_count = 0;  // Handles jitter
+        /* Set Apogee */
+        if (below_max_count >= APOGEE_DETECT_COUNT) {
+            return true;
+        }
     }
 
     flight.prev_altitude = flight.altitude;
     last_update = current_time;
-
-    /* Set Apogee */
-    if (below_max_count >= APOGEE_DETECT_COUNT) {
-        return true;
-    }
 
     return false;
 }
