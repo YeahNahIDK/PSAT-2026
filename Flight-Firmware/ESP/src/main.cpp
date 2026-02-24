@@ -1,253 +1,351 @@
+/* === Dependencies === */
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <Arduino.h>
+#include "hardware_config.h"
 
+
+/* === Component Drivers === */
 #include "LoRaHandler.h"
 #include "GPSDriver.h"
 #include "BuzzerDriver.h"
-#include "Recovery.h"
 #include "BMP390Driver.h"
 #include "ICMDriver.h"
 #include "ServoDriver.h"
 #include "SdDriver.h"
 
-static const char *TAG = "MAIN";
 
+/* === Component Creation === */
 LoRaHandler lora;
-
-#define SD_CS_PIN 3
-SdDriver sd(SD_CS_PIN);
-
-#define BUZZER_PIN  6
-BuzzerDriver buzzer(BUZZER_PIN);
-
-#define GPS_RX_PIN 7 // Wire to ESP TX
-#define GPS_TX_PIN 8
-#define GPS_UART 0
-GPSDriver gps(GPS_UART, GPS_RX_PIN, GPS_TX_PIN);
-
-#define SERVO_PIN 2
-#define SERVO_STARTING_ANGLE 15
-#define SERVO_ENDING_ANGLE 0
-ServoDriver servo(SERVO_PIN);
-
+SdDriver sd(PIN_SD_CS);
+BuzzerDriver buzzer(PIN_BUZZER);
+GPSDriver gps(UART_GPS, PIN_GPS_RX, PIN_GPS_TX);
+ServoDriver servo(PIN_SERVO);
 BMP390Driver altimeter;
-ICMDriver imu(Wire, 0x69);
+ICMDriver imu(Wire, ADDRESS_IMU);
 
-// Timers for non-blocking delays
-unsigned long lastTelemetryTime = 0;
-const long TELEMETRY_INTERVAL = 1000;
-unsigned long servoTime = 0;
+enum FlightState {
+    PRE_LAUNCH,
+    ASCENDING,
+    DESCENDING,
+    LANDED
+};
 
-#define APOGEE_THRESHOLD 10 // metres
-bool APOGEE = false;
-float alt_prev;
-float alt_max = 0;
+struct TelemetryData {
+    FlightState current_state = FLIGHT_STATE_INIT;
+    float prev_altitude = 0.0f;
+    float altitude = 0.0f;
+    float max_altitude = 0.0f;
+    float temperature = 0.0f;
+    bool apogee = false;
+    unsigned long landed_time = 0;
+    unsigned long start_time = 0;
+}; TelemetryData flight;
 
-bool landing = false;
 
-void imu_test() {
-    char to_send[50] = {0};
-    if (imu.update()) {
-        IMUData d = imu.getData();
-        sprintf(to_send, "A: %.2f %.2f %.2f | G: %.2f %.2f %.2f\n", 
-            d.accX, d.accY, d.accZ, 
-            d.gyrX, d.gyrY, d.gyrZ);
+/* === Prototype Definition === */
+/* Setup */
+bool log_init_status(bool success, const char* device_name);
+void sensor_test(char *sensor_data);
+
+/* Loop */
+bool stability_check();
+bool apogee_detect();
+void send_gps();
+void sd_write_data();
+
+void interval_sd(int time_interval);
+void interval_gps(int time_interval);
+void interval_buzzer(int time_interval, int beep_length);
+
+
+void setup() {
+    /* === Communication === */
+    SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+    Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
+
+    /* === Hardware Initialisation === */
+    buzzer.begin();
+    servo.begin();
+    servo.writeAngle(SERVO_STARTING_ANGLE);
+
+    buzzer.force_beep(1, 50);
+
+    log_init_status(lora.begin(), "LoRa");
+    log_init_status(gps.begin(), "GPS");
+    bool altimeter_init = log_init_status(altimeter.begin(), "Altimeter");
+    bool imu_init = log_init_status(imu.begin(), "IMU");
+    log_init_status(sd.begin(SPI), "SD");
+
+    if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
+        sd.logData("Time (ms), Altitude (m), Temp (°C), "
+           "Accel_X (G), Accel_Y (G), Accel_Z (G), "
+           "Gyro_X (dps), Gyro_Y (dps), Gyro_Z (dps), "
+           "Latitude, Longitude\n");
+        sd.save(); 
     }
 
-    lora.send(to_send);
+    buzzer.force_beep(1, 50);
+    delay(500);
+
+    /* === Calibration === */
+    altimeter.calibrate();
+    imu.calibrateGyro();
+
+    // Gets average sensor readings
+    if (altimeter_init && imu_init) {
+        char sensor_data[64];
+        sensor_test(sensor_data);
+        lora.send(sensor_data);
+    }
+
+    buzzer.force_beep(3, 50);
 }
 
-RecoveryState get_flight_state() {
-    char to_send[50] = {0};
-    // 1. GPS Data
-    float gpsSpeed = gps.tGps.speed.kmph();
-    bool gpsOk = gps.isValid();
 
-    // 2. Apogee Flag 
-    // (Placeholder: Logic will return immediately if this is false)
-    bool apogeeReached = true; 
+void loop() {
+    gps.update();
+    buzzer.update();    
+    flight.altitude = altimeter.getAltitude();
+    flight.temperature = altimeter.getTemperature();
 
-    // 3. PASS TO LOGIC
-    // The function will call altimeter.getAltitude() internally.
-    RecoveryState current_state = check_recovery_logic(apogeeReached, altimeter, gpsSpeed, gpsOk, buzzer);
+    switch(flight.current_state) {
+        case PRE_LAUNCH: {
+            interval_gps(INTERVAL_VERY_SLOW);
 
-    float debugAlt = altimeter.getAltitude();
+            if (flight.altitude >= STATE_TRANSITION_ALT) {
+                flight.current_state = ASCENDING;
+                flight.start_time = millis();
+            }
+            break;
+        }
 
-    return current_state;
+        case ASCENDING: {
+            interval_sd(INTERVAL_VERY_FAST);
+            interval_gps(INTERVAL_SLOW);
+
+            flight.apogee = apogee_detect();
+            if (flight.apogee) {
+                flight.current_state = DESCENDING;
+            }
+            break;
+        }
+
+        case DESCENDING: {
+            interval_sd(INTERVAL_FAST);
+            interval_gps(INTERVAL_SLOW);
+            if (flight.apogee - flight.altitude > SERVO_REL_ALTITUDE) {
+                servo.writeAngle(SERVO_ENDING_ANGLE);
+            }
+            
+            if (stability_check()) {
+                flight.current_state = LANDED;
+                flight.landed_time = millis();
+                lora.send("LANDING CONFIRMED");
+            }
+            break;
+        }
+
+        case LANDED: {
+            interval_gps(INTERVAL_VERY_SLOW);
+            if (millis() - flight.landed_time >= BUZZER_RECOVERY_DELAY) {
+                interval_buzzer(INTERVAL_SLOW, 500);
+            }
+            break;
+        }
+    }
 }
+
+
+/* === Setup Functions === */
+bool log_init_status(bool success, const char* device_name) {
+    char setup_results[64] = {0};
+
+    if (success) {
+        sprintf(setup_results, "%s Init Success!\n", device_name);
+    } else {
+        sprintf(setup_results, "%s Init Failed!\n", device_name);
+    }
+
+    lora.send(setup_results);
+    delay(50);
+
+    return success;
+}
+
+
+void sensor_test(char *sensor_data) {
+    float altitude_sum = 0;
+    float temperature_sum = 0;
+    float acceleration_sum = 0;
+    float angular_velocity_sum = 0;
+
+    for (int i = 0; i < CALIBRATION_READINGS; i++) {
+        IMUData imu_data = imu.getData();
+        altitude_sum += altimeter.getAltitude();
+        temperature_sum += altimeter.getTemperature();
+
+        acceleration_sum += sqrt(imu_data.accX * imu_data.accX + imu_data.accY * imu_data.accY + imu_data.accZ + imu_data.accZ);
+        angular_velocity_sum += sqrt(imu_data.gyrX * imu_data.gyrX + imu_data.gyrY * imu_data.gyrY + imu_data.gyrZ + imu_data.gyrZ);
+    }
+
+    float altitude_avg = altitude_sum / CALIBRATION_READINGS;
+    float temperature_avg = temperature_sum / CALIBRATION_READINGS;
+    float acceleration_avg = acceleration_sum / CALIBRATION_READINGS;
+    float angular_velocity_avg = angular_velocity_sum / CALIBRATION_READINGS;
+
+    sprintf(sensor_data, "Alt: %.2f, Temp: %.2f, Accel: %.2f, Ang: %.2f\n", 
+        altitude_avg, temperature_avg, acceleration_avg, angular_velocity_avg);
+}
+
+
+/* === Loop Functions === */
+bool stability_check() {
+    static unsigned long lastCheckTime = 0;
+    static float anchorAltitude = 0;        
+    static unsigned long stableStartTime = 0;
+
+    bool gpsMoving = gps.isValid() && (gps.tGps.speed.kmph() > GPS_STABLE_MAX_SPEED);
+
+    if (stableStartTime == 0 || abs(flight.altitude - anchorAltitude) > STABILITY_MAX_DRIFT) {
+        anchorAltitude = flight.altitude;
+        stableStartTime = millis(); 
+        
+        if (gpsMoving) {
+            stableStartTime = 0; 
+        }
+    }
+    else {
+        if (stableStartTime != 0 && (millis() - stableStartTime > STABILITY_DETECT_MS)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool apogee_detect() {
+    static unsigned long last_update = 0;
+    if (last_update == 0) {
+        last_update = millis();
+        flight.prev_altitude = flight.altitude;
+        flight.max_altitude = flight.altitude;
+        return false;
+    }
+
+    unsigned long current_time = millis();
+    unsigned long delta_time = current_time - last_update;
+    if (delta_time == 0) return false;
+
+    float delta_altitude = flight.altitude - flight.prev_altitude;
+    float velocity = delta_altitude / (delta_time / 1000.0f);
+
+    static int below_max_count = 0;
+
+    /* Santiy Check */
+    if (abs(velocity) > APOGEE_MAX_VELOCITY) return false;
+
+    /* Set Maximum Altitude */
+    if (flight.altitude > flight.max_altitude) {
+        flight.max_altitude = flight.altitude;
+        below_max_count = 0;
+    } else if ((flight.max_altitude - flight.altitude) > APOGEE_DROP_THRESHOLD){
+        below_max_count += 1;
+    } else {
+        below_max_count = 0;  // Handles jitter
+    }
+
+    flight.prev_altitude = flight.altitude;
+    last_update = current_time;
+
+    /* Set Apogee */
+    if (below_max_count >= APOGEE_DETECT_COUNT) {
+        return true;
+    }
+
+    return false;
+}
+
 
 void send_gps() {
-    char gps_data[50] = {0};
+    char gps_data[128] = {0}; 
+    
+    const char team_char = 'P'; 
+    
     bool has_fix = gps.isValid();
+    char fix_status = has_fix ? 'G' : 'N';
 
-    if (has_fix) {
-        sprintf(gps_data, "FIX, %.6f, %.6f\n", gps.getLatitude(), gps.getLongitude());
-    } else {
-        sprintf(gps_data, "NOFIX (Sats: %d)\n", gps.getSatellites());
-    }
+    int sats = gps.getSatellites();
+    if (sats > 15) sats = 15;
+    if (sats < 0) sats = 0;
+
+    // Defaulting to 0 to maintain packet structure
+    int hour = has_fix ? gps.getHour() : 0;
+    int minute = has_fix ? gps.getMinute() : 0;
+    int second = has_fix ? gps.getSecond() : 0;
+    
+    float lat = has_fix ? gps.getLatitude() : 0.0;
+    float lon = has_fix ? gps.getLongitude() : 0.0;
+    float alt = has_fix ? gps.getAltitude() : 0.0;
+
+    // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
+    sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n", 
+            team_char, 
+            hour, minute, second, 
+            fix_status, 
+            sats, 
+            lat, lon, 
+            alt);
 
     lora.send(gps_data);
 }
 
-void detect_apogee() {
-    float smoothing_factor = 0.1;
 
-    float alt_curr = altimeter.getAltitude();
-    float alt_average = alt_prev * smoothing_factor + alt_curr * (1-smoothing_factor);
-
-    if (alt_average > alt_max) {
-        alt_max = alt_average;
-    }
-
-    if (alt_average < alt_max - APOGEE_THRESHOLD) {
-        APOGEE = true;
-    }
-
-    alt_prev = alt_average;
+void sd_write_data() {
+    char log_buffer[256];
+    IMUData imu_data = imu.getData();
+    snprintf(log_buffer, sizeof(log_buffer), 
+            "%lu, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.6f, %.6f\n",
+            millis() - flight.start_time,   // Time (ms)
+            flight.altitude,                // Altitude (m)
+            flight.temperature,             // Temp (°C)
+            imu_data.accX,                  // Accel X (G)
+            imu_data.accY,                  // Accel Y (G)
+            imu_data.accZ,                  // Accel Z (G)
+            imu_data.gyrX,                  // Gyro X (dps)
+            imu_data.gyrY,                  // Gyro Y (dps)
+            imu_data.gyrZ,                  // Gyro Z (dps)
+            gps.getLatitude(),              // Latitude
+            gps.getLongitude()              // Longitude
+    );
+    sd.logData(log_buffer);
 }
 
-void setup() {
-    // SCK, MISO, MOSI, SS
-    // SPI.begin(19, 15, 18, 2); // C6
-    SPI.begin(20, 5, 10, 21); // C3
 
-    // SDA, SCL
-    Wire.begin(0, 1);
-
-    char setup_results[100] = {0};
-
-    buzzer.begin();
-
-    // delay(50);
-
-    // buzzer.beep(1, 50);
-
-    // delay(50);
-
-    if (!lora.begin()) {
-        sprintf(setup_results, "LoRa Init Failed!\n");
-    } else {
-        sprintf(setup_results, "LoRa Init Success!\n");
+void interval_sd(int time_interval) {
+    static unsigned long last_write = 0;
+    if (millis() - last_write > time_interval) {
+        sd_write_data();
+        last_write = millis();
     }
-    lora.send(setup_results);
-    delay(50);
-
-    if (!gps.begin()) {
-        sprintf(setup_results, "GPS Init Failed!\n");
-    } else {
-        sprintf(setup_results, "GPS Init Success!\n");
-    }
-    lora.send(setup_results);
-    delay(50);
-
-    if (!altimeter.begin()) {
-        sprintf(setup_results, "BMP390 Init Failed!");
-    } else {
-        sprintf(setup_results, "BMP390 Init Success!\n");
-    }
-    lora.send(setup_results);
-    delay(50);
-
-    if (!imu.begin()) {
-         sprintf(setup_results, "IMU Init Failed!");
-    } else {
-        sprintf(setup_results, "IMU Init Success!\n");
-    }
-    lora.send(setup_results);
-    delay(50);
-
-    if (sd.begin(SPI)) { 
-        // Open the file once
-        if (sd.openLog("/flight_data.csv")) {
-            // Write the header and manually force a save
-            sd.logData("Time_ms,Altitude\n");
-            sd.save(); 
-            sprintf(setup_results, "Log opened and header written.");
-        } else {
-            sprintf(setup_results, "SD Could Not Open File");
-        }
-    } else {
-        sprintf(setup_results, "SD Init Failed!");
-    }
-    lora.send(setup_results);
-    delay(50);
-    
-    servo.begin();
-    servo.writeAngle(SERVO_STARTING_ANGLE);
-    
-    delay(500);
-
-    altimeter.calibrate();
-    imu.calibrateGyro();
-
-    /* Test readings */
-    const int READINGS = 10;
-
-    float alt_sum = 0;
-    float temp_sum = 0;
-    float acc_sum = 0;
-    float ang_sum = 0;
-
-    for (int i = 0; i < READINGS; i++) {
-        IMUData d = imu.getData();
-        alt_sum += altimeter.getAltitude();
-        temp_sum += altimeter.getTemperature();
-
-        acc_sum += sqrt(d.accX * d.accX + d.accY * d.accY + d.accZ + d.accZ);
-        ang_sum += sqrt(d.gyrX * d.gyrX + d.gyrY * d.gyrY + d.gyrZ + d.gyrZ);
-    }
-
-    float alt_avg = alt_sum / READINGS;
-    float temp_avg = temp_sum / READINGS;
-    float acc_avg = acc_sum / READINGS;
-    float ang_avg = ang_sum / READINGS;
-
-    sprintf(setup_results, "Alt: %.2f, Temp: %.2f, Accel: %.2f, Ang: %.2f\n", alt_avg, temp_avg, acc_avg, ang_avg);
-    lora.send(setup_results);
-
-    alt_prev = altimeter.getAltitude();
-
-    // buzzer.beep(1, 50);
-    // delay(1000 * 60 * 2 + 30 * 1000);
-    // lora.send("DROP DROP DROP\n");
 }
 
-void loop() {
-    gps.update();
-    buzzer.update();
-    
-    if (millis() - lastTelemetryTime > TELEMETRY_INTERVAL) {
-        lastTelemetryTime = millis();
-        
-        // buzzer.beep(1, 500);
 
-        RecoveryState current_state = get_flight_state();
-        if (current_state == REC_IN_AIR) {
-            detect_apogee();
-        }
-
-        if (current_state == REC_LANDED && !landing) {
-            lora.send("LANDING CONFIRMED");
-            landing = true;
-            // buzzer.beep(1, 500);
-        }
-
+void interval_gps(int time_interval) {
+    static unsigned long last_transmission = 0;
+    if (millis() - last_transmission > time_interval) {
         send_gps();
-        imu_test();
-
-        char to_send[50] = {0};
-        sprintf(to_send, "Alt: %.2f", altimeter.getAltitude());
-        lora.send(to_send);
-
-        // SD Test
-        sd.logData("Hello World\n");
-        sd.closeLog();
+        last_transmission = millis();
     }
+}
 
-    if (APOGEE || millis() - servoTime > 2*TELEMETRY_INTERVAL) { // SET SO GOES AFTER PARACHUTE DEPLOYMENT
-        servoTime = millis();
-        servo.writeAngle(SERVO_ENDING_ANGLE);
+
+void interval_buzzer(int time_interval, int beep_length) {
+    static unsigned long last_trigger = 0;
+    if (millis() - last_trigger > time_interval) {
+        buzzer.beep(1, beep_length);
+        last_trigger = millis();
     }
 }
