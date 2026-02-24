@@ -4,27 +4,13 @@
 #include <Arduino.h>
 #include <RadioLib.h>
 
-// Define your PINs here so they are easy to change later
-
-//C6
-// #define LORA_CS     2
-// #define LORA_DIO0   14  
-// #define LORA_RST    RADIOLIB_NC           
-// #define LORA_DIO1   RADIOLIB_NC
-
-//C3
-#define LORA_CS     21
-#define LORA_DIO0   4
-#define LORA_RST    RADIOLIB_NC            
-#define LORA_DIO1   RADIOLIB_NC
-
 class LoRaHandler {
 public:
     // Constructor
     LoRaHandler();
 
     // Initialize the module. Returns true if successful.
-    bool init();
+    bool begin();
 
     // Send a string message. Returns true if successful.
     bool send(String message);

@@ -1,24 +1,17 @@
 #include "LoRaHandler.h"
+#include "hardware_config.h"
 
 // Constructor: Initializes the RadioLib Module object
 LoRaHandler::LoRaHandler() {
     // Create the generic Module object used by RadioLib
-    radio = new SX1276(new Module(LORA_CS, LORA_DIO0, LORA_RST, LORA_DIO1, SPI));
+    radio = new SX1276(new Module(PIN_LORA_CS, PIN_LORA_DIO0, PIN_LORA_RST, PIN_LORA_DIO1, SPI));
 }
 
-bool LoRaHandler::init() {
+bool LoRaHandler::begin() {
     Serial.print("[LoRa] Initializing ... ");
-
-    // begin(Freq, Bandwidth, SF, CodingRate, SyncWord, Power, Preamble, Gain)  
-    // 1. Frequency: 915.0 MHz
-    // 2. Bandwidth: 125.0 kHz (Matches index 0)
-    // 3. Spreading Factor: 10
-    // 4. Coding Rate: 5 (4/5)
-    // 5. Sync Word: 0x12 (Standard Private Network)
-    // 6. Power: 14 dBm
-    // 7. Preamble: 8
-    // 8. Gain: 0 (Auto)
-    int state = radio->begin(915.0, 125.0, 10, 5, 0x12, 14, 8, 0);
+    
+    int state = radio->begin(LORA_FREQUENCY, LORA_BANDWIDTH, LORA_SF,
+        LORA_CR, LORA_SYNC_WORD, LORA_POWER, LORA_PREAMBLE, LORA_GAIN);
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");
