@@ -61,3 +61,17 @@ void BuzzerDriver::update() {
         }
     }
 }
+
+void BuzzerDriver::force_beep(int count, int durationMs) {
+    for (int i = 0; i < count; i++) {
+        on();
+        delay(durationMs);
+        
+        off();
+        delay(durationMs);
+    }
+    
+    // Prevents clash with update()
+    _beepCount = 0; 
+    _beepState = false;
+}

@@ -12,6 +12,7 @@ public:
     void on();  
     void off(); 
     void beep(int count, int durationMs = 100);
+    void force_beep(int count, int durationMs);
     void update();
 
 private:
