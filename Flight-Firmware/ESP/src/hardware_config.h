@@ -22,6 +22,7 @@
 #define PIN_GPS_TX              8
 #define PIN_GPS_RX              7
 #define UART_GPS                0
+#define GPS_STABLE_MAX_SPEED    15          // Km/h
 
 // LoRa
 #define PIN_LORA_DIO0           13 
@@ -39,6 +40,7 @@
 
 // Buzzer
 #define PIN_BUZZER              6
+#define BUZZER_RECOVERY_DELAY   (15 * 60 * 1000)
 
 // Servo
 #define PIN_SERVO               2
@@ -46,6 +48,8 @@
 // IMU
 #define ADDRESS_IMU             0x69
 
+// Altimeter
+#define ADDRESS_ALTIMETER       0x77
 
 /* === SYSTEM DEFINITIONS === */
 #define SERVO_STARTING_ANGLE    15
@@ -54,6 +58,11 @@
 #define CALIBRATION_READINGS    10
 #define FLIGHT_STATE_INIT       PRE_LAUNCH
 #define STATE_TRANSITION_ALT    15          // m
+#define STABILITY_MAX_DRIFT     2           // m
+#define STABILITY_DETECT_MS    (10 * 1000)
+#define APOGEE_MAX_VELOCITY     200         // m/s
+#define APOGEE_DETECT_COUNT     5
+#define APOGEE_DROP_THRESHOLD   2
 
 /* Polling rates (ms) */
 #define INTERVAL_VERY_SLOW     5000

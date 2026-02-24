@@ -1,17 +1,18 @@
 #include "BMP390Driver.h"
+#include "hardware_config.h"
 
 BMP390Driver::BMP390Driver() {
 }
 
 bool BMP390Driver::begin() {
-    if (!bmp.begin_I2C(0x77)) { 
+    if (!bmp.begin_I2C(ADDRESS_ALTIMETER)) { 
         if (!bmp.begin_I2C(0x76)) return false;
     }
 
     // Settings optimized for flight
     bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
     bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-    bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+    bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_7);
     bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 
     return true;

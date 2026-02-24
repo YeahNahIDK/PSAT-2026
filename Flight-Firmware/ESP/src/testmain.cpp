@@ -35,15 +35,14 @@ enum FlightState {
 
 struct TelemetryData {
     FlightState current_state = FLIGHT_STATE_INIT;
+    float prev_altitude = 0.0f;
     float altitude = 0.0f;
-    float apogee = -1;
-    uint32_t landed_time_ms = 0;
+    float max_altitude = 0.0f;
+    float temperature = 0.0f;
+    bool apogee = false;
+    unsigned long landed_time = 0;
+    unsigned long start_time = 0;
 }; TelemetryData flight;
-
-
-/* === Global Definitions === */
-static float gps_last_transmission = 0;
-static float sd_last_write = 0;
 
 
 /* === Prototype Definition === */
@@ -53,17 +52,18 @@ void sensor_test(char *sensor_data);
 
 /* Loop */
 bool stability_check();
-float get_altitude();
-float apogee_detect();
+bool apogee_detect();
 void send_gps();
 void sd_write_data();
+
 void interval_sd(int time_interval);
 void interval_gps(int time_interval);
+void interval_buzzer(int time_interval, int beep_length);
 
 
 void setup() {
     /* === Communication === */
-    SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI, PIN_LORA_CS);
+    SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
     /* === Hardware Initialisation === */
@@ -71,7 +71,7 @@ void setup() {
     servo.begin();
     servo.writeAngle(SERVO_STARTING_ANGLE);
 
-    buzzer.beep(1, 50);
+    buzzer.force_beep(1, 50);
 
     log_init_status(lora.begin(), "LoRa");
     log_init_status(gps.begin(), "GPS");
@@ -80,12 +80,14 @@ void setup() {
     log_init_status(sd.begin(SPI), "SD");
 
     if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
-        // Write the header and manually force a save
-        sd.logData("Time_ms,Altitude\n");
+        sd.logData("Time (ms), Altitude (m), Temp (°C), "
+           "Accel_X (G), Accel_Y (G), Accel_Z (G), "
+           "Gyro_X (dps), Gyro_Y (dps), Gyro_Z (dps), "
+           "Latitude, Longitude\n");
         sd.save(); 
     }
 
-    buzzer.beep(1, 50);
+    buzzer.force_beep(1, 50);
     delay(500);
 
     /* === Calibration === */
@@ -99,12 +101,15 @@ void setup() {
         lora.send(sensor_data);
     }
 
-    buzzer.beep(3, 50);
+    buzzer.force_beep(3, 50);
 }
 
 
 void loop() {
-    flight.altitude = get_altitude();
+    gps.update();
+    buzzer.update();    
+    flight.altitude = altimeter.getAltitude();
+    flight.temperature = altimeter.getTemperature();
 
     switch(flight.current_state) {
         case PRE_LAUNCH: {
@@ -112,6 +117,7 @@ void loop() {
 
             if (flight.altitude >= STATE_TRANSITION_ALT) {
                 flight.current_state = ASCENDING;
+                flight.start_time = millis();
             }
             break;
         }
@@ -121,7 +127,7 @@ void loop() {
             interval_gps(INTERVAL_SLOW);
 
             flight.apogee = apogee_detect();
-            if (flight.apogee != -1) {
+            if (flight.apogee) {
                 flight.current_state = DESCENDING;
             }
             break;
@@ -136,6 +142,16 @@ void loop() {
             
             if (stability_check()) {
                 flight.current_state = LANDED;
+                flight.landed_time = millis();
+                lora.send("LANDING CONFIRMED");
+            }
+            break;
+        }
+
+        case LANDED: {
+            interval_gps(INTERVAL_VERY_SLOW);
+            if (millis() - flight.landed_time >= BUZZER_RECOVERY_DELAY) {
+                interval_buzzer(INTERVAL_SLOW, 500);
             }
             break;
         }
@@ -186,17 +202,151 @@ void sensor_test(char *sensor_data) {
 
 
 /* === Loop Functions === */
+bool stability_check() {
+    static unsigned long lastCheckTime = 0;
+    static float anchorAltitude = 0;        
+    static unsigned long stableStartTime = 0;
+
+    bool gpsMoving = gps.isValid() && (gps.tGps.speed.kmph() > GPS_STABLE_MAX_SPEED);
+
+    if (stableStartTime == 0 || abs(flight.altitude - anchorAltitude) > STABILITY_MAX_DRIFT) {
+        anchorAltitude = flight.altitude;
+        stableStartTime = millis(); 
+        
+        if (gpsMoving) {
+            stableStartTime = 0; 
+        }
+    }
+    else {
+        if (stableStartTime != 0 && (millis() - stableStartTime > STABILITY_DETECT_MS)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool apogee_detect() {
+    static unsigned long last_update = 0;
+    if (last_update == 0) {
+        last_update = millis();
+        flight.prev_altitude = flight.altitude;
+        flight.max_altitude = flight.altitude;
+        return false;
+    }
+
+    unsigned long current_time = millis();
+    unsigned long delta_time = current_time - last_update;
+    if (delta_time == 0) return false;
+
+    float delta_altitude = flight.altitude - flight.prev_altitude;
+    float velocity = delta_altitude / (delta_time / 1000.0f);
+
+    static int below_max_count = 0;
+
+    /* Santiy Check */
+    if (abs(velocity) > APOGEE_MAX_VELOCITY) return false;
+
+    /* Set Maximum Altitude */
+    if (flight.altitude > flight.max_altitude) {
+        flight.max_altitude = flight.altitude;
+        below_max_count = 0;
+    } else if ((flight.max_altitude - flight.altitude) > APOGEE_DROP_THRESHOLD){
+        below_max_count += 1;
+    } else {
+        below_max_count = 0;  // Handles jitter
+    }
+
+    flight.prev_altitude = flight.altitude;
+    last_update = current_time;
+
+    /* Set Apogee */
+    if (below_max_count >= APOGEE_DETECT_COUNT) {
+        return true;
+    }
+
+    return false;
+}
+
+
+void send_gps() {
+    char gps_data[128] = {0}; 
+    
+    const char team_char = 'P'; 
+    
+    bool has_fix = gps.isValid();
+    char fix_status = has_fix ? 'G' : 'N';
+
+    int sats = gps.getSatellites();
+    if (sats > 15) sats = 15;
+    if (sats < 0) sats = 0;
+
+    // Defaulting to 0 to maintain packet structure
+    int hour = has_fix ? gps.getHour() : 0;
+    int minute = has_fix ? gps.getMinute() : 0;
+    int second = has_fix ? gps.getSecond() : 0;
+    
+    float lat = has_fix ? gps.getLatitude() : 0.0;
+    float lon = has_fix ? gps.getLongitude() : 0.0;
+    float alt = has_fix ? gps.getAltitude() : 0.0;
+
+    // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
+    sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n", 
+            team_char, 
+            hour, minute, second, 
+            fix_status, 
+            sats, 
+            lat, lon, 
+            alt);
+
+    lora.send(gps_data);
+}
+
+
+void sd_write_data() {
+    char log_buffer[256];
+    IMUData imu_data = imu.getData();
+    snprintf(log_buffer, sizeof(log_buffer), 
+            "%lu, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.6f, %.6f\n",
+            millis() - flight.start_time,   // Time (ms)
+            flight.altitude,                // Altitude (m)
+            flight.temperature,             // Temp (°C)
+            imu_data.accX,                  // Accel X (G)
+            imu_data.accY,                  // Accel Y (G)
+            imu_data.accZ,                  // Accel Z (G)
+            imu_data.gyrX,                  // Gyro X (dps)
+            imu_data.gyrY,                  // Gyro Y (dps)
+            imu_data.gyrZ,                  // Gyro Z (dps)
+            gps.getLatitude(),              // Latitude
+            gps.getLongitude()              // Longitude
+    );
+    sd.logData(log_buffer);
+}
+
+
 void interval_sd(int time_interval) {
-    if (millis() - sd_last_write > time_interval) {
+    static unsigned long last_write = 0;
+    if (millis() - last_write > time_interval) {
         sd_write_data();
-        sd_last_write = millis();
+        last_write = millis();
     }
 }
 
 
 void interval_gps(int time_interval) {
-    if (millis() - gps_last_transmission > time_interval) {
+    static unsigned long last_transmission = 0;
+    if (millis() - last_transmission > time_interval) {
         send_gps();
-        gps_last_transmission = millis();
+        last_transmission = millis();
+    }
+}
+
+
+void interval_buzzer(int time_interval, int beep_length) {
+    static unsigned long last_trigger = 0;
+    if (millis() - last_trigger > time_interval) {
+        buzzer.beep(1, beep_length);
+        last_trigger = millis();
     }
 }
