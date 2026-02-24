@@ -47,13 +47,16 @@ static float sd_last_write = 0;
 
 
 /* === Prototype Definition === */
+/* Setup */
 bool log_init_status(bool success, const char* device_name);
 void sensor_test(char *sensor_data);
+
+/* Loop */
+bool stability_check();
 float get_altitude();
+float apogee_detect();
 void send_gps();
 void sd_write_data();
-float apogee_detect();
-bool stability_check();
 void interval_sd(int time_interval);
 void interval_gps(int time_interval);
 
