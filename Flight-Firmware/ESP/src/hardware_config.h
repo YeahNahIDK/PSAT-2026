@@ -66,7 +66,7 @@
 #define STATE_TRANSITION_ALT        15          // m
 #define STABILITY_MAX_DRIFT         2           // m
 #define STABILITY_DETECT_MS         (10 * 1000)
-#define APOGEE_MAX_VELOCITY         200         // m/s
+#define APOGEE_MAX_VELOCITY         175         // ms⁻¹
 #define APOGEE_DETECT_COUNT         5
 #define APOGEE_DROP_THRESHOLD       2
 
