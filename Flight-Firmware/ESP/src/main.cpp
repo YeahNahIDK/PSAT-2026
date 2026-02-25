@@ -259,7 +259,7 @@ bool apogee_detect() {
         if (flight.altitude > flight.max_altitude) {
             flight.max_altitude = flight.altitude;
             below_max_count = 0;
-        } else if ((flight.max_altitude - flight.altitude) > APOGEE_DROP_THRESHOLD){
+        } else if ((flight.max_altitude - flight.altitude) >= APOGEE_DROP_THRESHOLD){
             below_max_count += 1;
         } else {
             below_max_count = 0;  // Handles jitter
