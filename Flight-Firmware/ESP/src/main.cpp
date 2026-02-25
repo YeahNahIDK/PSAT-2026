@@ -34,7 +34,6 @@ enum FlightState {
 
 struct TelemetryData {
     FlightState current_state = FLIGHT_STATE_INIT;
-    float prev_altitude = 0.0f;
     float altitude = 0.0f;
     float max_altitude = 0.0f;
     float temperature = 0.0f;
@@ -128,6 +127,10 @@ void loop() {
             flight.apogee = apogee_detect();
             if (flight.apogee) {
                 flight.current_state = DESCENDING;
+
+                char apogee_result[64] = {0};
+                sprintf(apogee_result, "APOGEE CONFIRMED AT %.2fm", flight.max_altitude);
+                lora.send(apogee_result);
             }
             break;
         }
@@ -228,9 +231,11 @@ bool stability_check() {
 
 bool apogee_detect() {
     static unsigned long last_update = 0;
+    static float prev_altitude = 0.0f;
+
     if (last_update == 0) {
         last_update = millis();
-        flight.prev_altitude = flight.altitude;
+        prev_altitude = flight.altitude;
         flight.max_altitude = flight.altitude;
         return false;
     }
@@ -239,7 +244,7 @@ bool apogee_detect() {
     unsigned long delta_time = current_time - last_update;
     if (delta_time == 0) return false;
 
-    float delta_altitude = flight.altitude - flight.prev_altitude;
+    float delta_altitude = flight.altitude - prev_altitude;
     float velocity = delta_altitude / (delta_time / 1000.0f);
 
     static int below_max_count = 0;
@@ -262,7 +267,7 @@ bool apogee_detect() {
         }
     }
 
-    flight.prev_altitude = flight.altitude;
+    prev_altitude = flight.altitude;
     last_update = current_time;
 
     return false;
