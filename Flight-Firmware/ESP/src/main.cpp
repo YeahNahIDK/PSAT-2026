@@ -140,16 +140,21 @@ void loop() {
         }
 
         case DESCENDING: {
+            static unsigned long stability_last_check = 0;
+
             interval_sd(INTERVAL_FAST);
             interval_gps(INTERVAL_SLOW);
             if (flight.apogee - flight.altitude > SERVO_REL_ALTITUDE) {
                 servo.writeAngle(SERVO_ENDING_ANGLE);
             }
             
-            if (stability_check()) {
-                flight.current_state = LANDED;
-                flight.landed_time = millis();
-                lora.send("LANDING CONFIRMED");
+            if (millis() - stability_last_check > INTERVAL_SLOW) {
+                if (stability_check()) {
+                    flight.current_state = LANDED;
+                    flight.landed_time = millis();
+                    lora.send("LANDING CONFIRMED");
+                }
+                stability_last_check = millis();
             }
             break;
         }
@@ -209,7 +214,6 @@ void sensor_test(char *sensor_data) {
 
 /* === Loop Functions === */
 bool stability_check() {
-    static unsigned long lastCheckTime = 0;
     static float anchorAltitude = 0;        
     static unsigned long stableStartTime = 0;
 
