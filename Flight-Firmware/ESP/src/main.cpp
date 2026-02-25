@@ -1,5 +1,6 @@
 /* === Dependencies === */
 #include "esp_log.h"
+#include "esp_system.h"  // For diagnostics
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <Arduino.h>
@@ -60,6 +61,8 @@ void interval_buzzer(int time_interval, int beep_length);
 
 
 void setup() {
+    xTaskCreate(heartbeat_task, "heartbeat", 1024, NULL, 1, NULL);  // Diagnostics
+
     /* === Communication === */
     SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
@@ -72,6 +75,7 @@ void setup() {
     buzzer.force_beep(1, 50);
 
     log_init_status(lora.begin(), "LoRa");
+    diagnose_boot_reason();  // Diagnostics
     log_init_status(gps.begin(), "GPS");
     bool altimeter_init = log_init_status(altimeter.begin(), "Altimeter");
     bool imu_init = log_init_status(imu.begin(), "IMU");
@@ -347,5 +351,46 @@ void interval_buzzer(int time_interval, int beep_length) {
     if (millis() - last_trigger > time_interval) {
         buzzer.beep(1, beep_length);
         last_trigger = millis();
+    }
+}
+
+
+/* === Diagnostic Functions === */
+void diagnose_boot_reason() {
+    esp_reset_reason_t reason = esp_reset_reason();
+    char reason_str[128] = {0};
+
+    switch (reason) {
+        case ESP_RST_POWERON:  
+            sprintf(reason_str, "BOOT DIAG: Clean Power On\n"); 
+            break;
+        case ESP_RST_BROWNOUT: 
+            sprintf(reason_str, "BOOT DIAG: BROWNOUT DETECTED (Power dropped during shock)\n"); 
+            break;
+        case ESP_RST_PANIC:    
+            sprintf(reason_str, "BOOT DIAG: PANIC/CRASH (Software exception or bus lockup)\n"); 
+            break;
+        case ESP_RST_INT_WDT:
+        case ESP_RST_TASK_WDT:
+        case ESP_RST_WDT:      
+            sprintf(reason_str, "BOOT DIAG: WATCHDOG RESET (Code froze)\n"); 
+            break;
+        default:               
+            sprintf(reason_str, "BOOT DIAG: Other Reset (%d)\n", reason); 
+            break;
+    }
+
+    lora.send(reason_str);
+    delay(100); 
+}
+
+#define HEARTBEAT_LED_PIN 8
+void heartbeat_task(void *pvParameter) {
+    pinMode(HEARTBEAT_LED_PIN, OUTPUT);
+    while(1) {
+        digitalWrite(HEARTBEAT_LED_PIN, HIGH);
+        vTaskDelay(pdMS_TO_TICKS(50)); // Short flash
+        digitalWrite(HEARTBEAT_LED_PIN, LOW);
+        vTaskDelay(pdMS_TO_TICKS(950)); // Wait a second
     }
 }
