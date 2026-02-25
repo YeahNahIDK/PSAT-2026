@@ -60,7 +60,7 @@
 /* === SYSTEM DEFINITIONS === */
 #define SERVO_STARTING_ANGLE        15
 #define SERVO_ENDING_ANGLE          0
-#define SERVO_REL_ALTITUDE          150          // How far below apogee (m)
+#define SERVO_REL_ALTITUDE          150         // How far below apogee (m)
 #define CALIBRATION_READINGS        10
 #define FLIGHT_STATE_INIT           PRE_LAUNCH
 #define STATE_TRANSITION_ALT        15          // m
