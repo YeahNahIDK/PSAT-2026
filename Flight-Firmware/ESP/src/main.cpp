@@ -148,7 +148,7 @@ void loop() {
                 servo.writeAngle(SERVO_ENDING_ANGLE);
             }
             
-            if (millis() - stability_last_check > INTERVAL_SLOW) {
+            if (millis() - stability_last_check > INTERVAL_FAST) {
                 if (stability_check()) {
                     flight.current_state = LANDED;
                     flight.landed_time = millis();
