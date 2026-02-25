@@ -1,4 +1,5 @@
 #include "ServoDriver.h"
+#include "hardware_config.h"
 
 ServoDriver::ServoDriver(int pin, uint32_t minUs, uint32_t maxUs) 
     : _servoPin(pin), _minUs(minUs), _maxUs(maxUs) {}
@@ -17,11 +18,11 @@ void ServoDriver::writeMicroseconds(uint32_t us) {
 }
 
 void ServoDriver::writeAngle(float angle) {
-    if (angle < 0.0f) angle = 0.0f;
-    if (angle > 180.0f) angle = 180.0f;
+    if (angle < SERVO_MIN_ANGLE) angle = SERVO_MIN_ANGLE;
+    if (angle > SERVO_MAX_ANGLE ) angle = SERVO_MAX_ANGLE ;
 
     // Map the 0-180 degree range to your min and max microseconds
-    uint32_t us = _minUs + (uint32_t)((angle / 180.0f) * (_maxUs - _minUs));
+    uint32_t us = _minUs + (uint32_t)((angle / SERVO_MAX_ANGLE) * (_maxUs - _minUs));
     
     writeMicroseconds(us);
 }

@@ -1,5 +1,5 @@
 #include "LoRaHandler.h"
-#include "hardware_config.h"
+
 
 LoRaHandler::LoRaHandler() {
     radio = new SX1276(new Module(PIN_LORA_CS, PIN_LORA_DIO0, PIN_LORA_RST, PIN_LORA_DIO1, SPI));

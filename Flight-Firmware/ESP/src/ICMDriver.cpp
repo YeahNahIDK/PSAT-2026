@@ -1,12 +1,13 @@
 #include "ICMDriver.h"
 
 // --- Registers for ICM-42670-P ---
-#define REG_MCLK_RDY       0x00 
-#define REG_ACCEL_DATA_X1  0x0B
-#define REG_PWR_MGMT0      0x1F
-#define REG_GYRO_CONFIG0   0x20
-#define REG_ACCEL_CONFIG0  0x21
-#define REG_WHO_AM_I       0x75
+#define REG_MCLK_RDY        0x00 
+#define REG_ACCEL_DATA_X1   0x0B
+#define REG_PWR_MGMT0       0x1F
+#define REG_GYRO_CONFIG0    0x20
+#define REG_ACCEL_CONFIG0   0x21
+#define REG_WHO_AM_I        0x75
+#define DEVICE_ID           0x67
 
 ICMDriver::ICMDriver(TwoWire &wirePort, uint8_t addr) {
     _wire = &wirePort;
@@ -14,33 +15,31 @@ ICMDriver::ICMDriver(TwoWire &wirePort, uint8_t addr) {
 }
 
 bool ICMDriver::begin() {
-    // 1. Check ID
-    // ICM-42670-P WHO_AM_I should be 0x67
     uint8_t whoAmI = readRegister(REG_WHO_AM_I);
-    if (whoAmI != 0x67) {
-        return false; // Error: Sensor not found or wrong ID
+    if (whoAmI != DEVICE_ID ) {
+        return false;
     }
 
-    // 2. Power Management (PWR_MGMT0)
+    /* Power Management (PWR_MGMT0) */
     // Bit 3:2 = Gyro Mode (11 = Low Noise)
     // Bit 1:0 = Accel Mode (11 = Low Noise)
     // Writing 0x0F turns everything ON in High Precision mode
     writeRegister(REG_PWR_MGMT0, 0x0F);
     delay(50); // Wait for sensors to spin up
 
-    // 3. Configure Gyro (GYRO_CONFIG0)
+    /* Configure Gyro (GYRO_CONFIG0) */
     // Bits 7:5 = Range (000 = +/- 2000 dps)
     // Bits 3:0 = ODR (0111 = 100Hz)
     // 0x00 | 0x07 = 0x07
     writeRegister(REG_GYRO_CONFIG0, 0x07);
 
-    // 4. Configure Accel (ACCEL_CONFIG0)
+    /* Configure Accel (ACCEL_CONFIG0) */
     // Bits 7:5 = Range (000 = +/- 16g)
     // Bits 3:0 = ODR (0111 = 100Hz)
     // 0x00 | 0x07 = 0x07
     writeRegister(REG_ACCEL_CONFIG0, 0x07);
 
-    return true; // Success
+    return true;
 }
 
 bool ICMDriver::update() {

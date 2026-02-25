@@ -21,7 +21,7 @@ bool GPSDriver::begin() {
     while (millis() - start < 1500) {
         if (_serial.available() > 0) {
             trafficDetected = true;
-            break; // We found the GPS! Exit loop early.
+            break;
         }
     }
 

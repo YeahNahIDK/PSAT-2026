@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include "hardware_config.h"
 
 class ServoDriver {
 private:
@@ -8,8 +9,7 @@ private:
     uint32_t _maxUs;
 
 public:
-    // Defaulting to 500us (0°) and 2500us (180°)
-    ServoDriver(int pin, uint32_t minUs = 500, uint32_t maxUs = 2500);
+    ServoDriver(int pin, uint32_t minUs = SERVO_MIN_ANGLE_US, uint32_t maxUs = SERVO_MAX_ANGLE_US);
     
     void begin();
 

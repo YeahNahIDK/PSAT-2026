@@ -6,7 +6,7 @@ BMP390Driver::BMP390Driver() {
 
 bool BMP390Driver::begin() {
     if (!bmp.begin_I2C(ADDRESS_ALTIMETER)) { 
-        if (!bmp.begin_I2C(0x76)) return false;
+        if (!bmp.begin_I2C(ADDRESS_BACKUP_ALTIMETER)) return false;
     }
 
     // Settings optimized for flight

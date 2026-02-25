@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <RadioLib.h>
+#include "hardware_config.h"
 
 class LoRaHandler {
 public:
