@@ -60,6 +60,7 @@ void interval_gps(int time_interval);
 void interval_buzzer(int time_interval, int beep_length);
 
 
+/* === Flight Logic === */
 void setup() {
     xTaskCreate(heartbeat_task, "heartbeat", 1024, NULL, 1, NULL);  // Diagnostics
 
