@@ -19,10 +19,14 @@ void ServoDriver::writeMicroseconds(uint32_t us) {
 
 void ServoDriver::writeAngle(float angle) {
     if (angle < SERVO_MIN_ANGLE) angle = SERVO_MIN_ANGLE;
-    if (angle > SERVO_MAX_ANGLE ) angle = SERVO_MAX_ANGLE ;
+    if (angle > SERVO_MAX_ANGLE) angle = SERVO_MAX_ANGLE;
 
-    // Map the 0-180 degree range to your min and max microseconds
-    uint32_t us = _minUs + (uint32_t)((angle / SERVO_MAX_ANGLE) * (_maxUs - _minUs));
+    // Calculate the percentage of travel regardless of the starting angle
+    float angleRange = SERVO_MAX_ANGLE - SERVO_MIN_ANGLE;
+    float progress = (angle - SERVO_MIN_ANGLE) / angleRange;
+    
+    // Apply that percentage to the microsecond range
+    uint32_t us = _minUs + (uint32_t)(progress * (_maxUs - _minUs));
     
     writeMicroseconds(us);
 }

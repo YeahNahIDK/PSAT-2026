@@ -62,7 +62,7 @@
 #define SERVO_ENDING_ANGLE          0
 #define SERVO_REL_ALTITUDE          150         // How far below apogee (m)
 #define CALIBRATION_READINGS        10
-#define FLIGHT_STATE_INIT           PRE_LAUNCH
+#define FLIGHT_STATE_INIT           DESCENDING
 #define STATE_TRANSITION_ALT        15          // m
 #define STABILITY_MAX_DRIFT         2           // m
 #define STABILITY_DETECT_MS         (10 * 1000)

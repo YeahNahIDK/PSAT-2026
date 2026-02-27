@@ -73,11 +73,10 @@ void setup() {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
     /* === Hardware Initialisation === */
-    buzzer.begin();
+    // buzzer.begin();
     servo.begin();
-    servo.writeAngle(SERVO_STARTING_ANGLE);
 
-    buzzer.force_beep(1, 50);
+    // buzzer.force_beep(1, 50);
 
     log_init_status(lora.begin(), "LoRa");
     diagnose_boot_reason();  // Diagnostics
@@ -94,8 +93,10 @@ void setup() {
         sd.save(); 
     }
 
-    buzzer.force_beep(1, 50);
+    // buzzer.force_beep(1, 50);
     delay(500);
+
+    servo.writeAngle(SERVO_STARTING_ANGLE);
 
     /* === Calibration === */
     altimeter.calibrate();
@@ -108,7 +109,7 @@ void setup() {
         lora.send(sensor_data);
     }
 
-    buzzer.force_beep(3, 50);
+    // buzzer.force_beep(3, 50);
 }
 
 
@@ -149,18 +150,18 @@ void loop() {
 
             interval_sd(INTERVAL_FAST);
             interval_gps(INTERVAL_SLOW);
-            if (flight.apogee - flight.altitude > SERVO_REL_ALTITUDE) {
+            if ((flight.apogee - flight.altitude > SERVO_REL_ALTITUDE)) {
                 servo.writeAngle(SERVO_ENDING_ANGLE);
             }
             
-            if (millis() - stability_last_check > INTERVAL_FAST) {
-                if (stability_check()) {
-                    flight.current_state = LANDED;
-                    flight.landed_time = millis();
-                    lora.send("LANDING CONFIRMED");
-                }
-                stability_last_check = millis();
-            }
+            // if (millis() - stability_last_check > INTERVAL_FAST) {
+            //     if (stability_check()) {
+            //         flight.current_state = LANDED;
+            //         flight.landed_time = millis();
+            //         lora.send("LANDING CONFIRMED");
+            //     }
+            //     stability_last_check = millis();
+            // }
             break;
         }
 
@@ -298,6 +299,10 @@ void send_gps() {
     int sats = gps.getSatellites();
     if (sats > 15) sats = 15;
     if (sats < 0) sats = 0;
+
+    float hour = has_fix ? gps.getHour() : 0.0;
+    float minute = has_fix ? gps.getMinute() : 0.0;
+    float second = has_fix ? gps.getSecond() : 0.0;
     
     float lat = has_fix ? gps.getLatitude() : 0.0;
     float lon = has_fix ? gps.getLongitude() : 0.0;
@@ -339,8 +344,8 @@ void sd_write_data() {
 void interval_sd(int time_interval) {
     static unsigned long last_write = 0;
     if (millis() - last_write > time_interval) {
-        sd_write_data();
         last_write = millis();
+        sd_write_data();   
     }
 }
 
@@ -348,8 +353,8 @@ void interval_sd(int time_interval) {
 void interval_gps(int time_interval) {
     static unsigned long last_transmission = 0;
     if (millis() - last_transmission > time_interval) {
-        send_gps();
         last_transmission = millis();
+        send_gps();   
     }
 }
 
@@ -357,8 +362,8 @@ void interval_gps(int time_interval) {
 void interval_buzzer(int time_interval, int beep_length) {
     static unsigned long last_trigger = 0;
     if (millis() - last_trigger > time_interval) {
-        buzzer.beep(1, beep_length);
         last_trigger = millis();
+        buzzer.beep(1, beep_length);        
     }
 }
 

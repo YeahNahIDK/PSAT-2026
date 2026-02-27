@@ -1,9 +1,9 @@
 #include "BuzzerDriver.h"
 #include "esp_log.h"
+#include <Arduino.h>
 
 // CMT-8504 Resonance Freq
 #define BUZZER_FREQ 4000 
-#define BUZZER_RES  8    // 8-bit resolution (0-255)
 
 static const char *TAG = "BUZZER";
 
@@ -12,24 +12,18 @@ BuzzerDriver::BuzzerDriver(int pin)
 }
 
 void BuzzerDriver::begin() {
-    if (!ledcAttach(_pin, BUZZER_FREQ, BUZZER_RES)) {
-        ESP_LOGE(TAG, "Failed to attach LEDC to pin %d", _pin);
-        return;
-    }
-    
+    pinMode(_pin, OUTPUT);
     off();
-    ESP_LOGI(TAG, "Initialized on Pin %d, Freq %dHz (v3.0)", _pin, BUZZER_FREQ);
+    ESP_LOGI(TAG, "Initialized on Pin %d, Freq %dHz (Native Tone API)", _pin, BUZZER_FREQ);
 }
 
 void BuzzerDriver::on() {
-    uint32_t duty = (1 << BUZZER_RES) / 2;
-    
-    ledcWrite(_pin, duty); // 50% duty cycle
+    tone(_pin, BUZZER_FREQ);
     _isActive = true;
 }
 
 void BuzzerDriver::off() {
-    ledcWrite(_pin, 0);
+    noTone(_pin);
     _isActive = false;
 }
 
