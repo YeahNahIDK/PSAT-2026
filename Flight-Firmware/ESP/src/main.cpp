@@ -59,6 +59,10 @@ void interval_sd(int time_interval);
 void interval_gps(int time_interval);
 void interval_buzzer(int time_interval, int beep_length);
 
+/* Diagnostics */
+void diagnose_boot_reason();
+void heartbeat_task(void *pvParameter);
+
 
 /* === Flight Logic === */
 void setup() {
@@ -297,7 +301,6 @@ void send_gps() {
     
     float lat = has_fix ? gps.getLatitude() : 0.0;
     float lon = has_fix ? gps.getLongitude() : 0.0;
-    float alt = has_fix ? gps.getAltitude() : 0.0;
 
     // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
     sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n", 
@@ -306,7 +309,7 @@ void send_gps() {
             fix_status, 
             sats, 
             lat, lon, 
-            alt);
+            flight.altitude);
 
     lora.send(gps_data);
 }

@@ -25,7 +25,7 @@
 #define GPS_STABLE_MAX_SPEED        15          // Km/h
 
 // LoRa
-#define PIN_LORA_DIO0               13 
+#define PIN_LORA_DIO0               4 
 #define PIN_LORA_RST                RADIOLIB_NC            
 #define PIN_LORA_DIO1               RADIOLIB_NC
 
