@@ -1,12 +1,15 @@
 #include "ServoDriver.h"
 #include "hardware_config.h"
 
+#define SERVO_FREQUENCY         50
+#define SERVO_TIMER_RESOLUTION  14
+#define SERVO_TIMER_CHANNEL     0
+
 ServoDriver::ServoDriver(int pin, uint32_t minUs, uint32_t maxUs) 
     : _servoPin(pin), _minUs(minUs), _maxUs(maxUs) {}
 
 void ServoDriver::begin() {
-    // Attach the pin to an auto-assigned timer at 50Hz with 14-bit resolution
-    ledcAttach(_servoPin, 50, 14);
+    ledcAttachChannel(_servoPin, SERVO_FREQUENCY, SERVO_TIMER_RESOLUTION, SERVO_TIMER_CHANNEL);
 }
 
 void ServoDriver::writeMicroseconds(uint32_t us) {

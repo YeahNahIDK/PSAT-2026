@@ -73,10 +73,11 @@ void setup() {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
     /* === Hardware Initialisation === */
-    // buzzer.begin();
+    buzzer.begin();
     servo.begin();
+    servo.writeAngle(SERVO_STARTING_ANGLE);
 
-    // buzzer.force_beep(1, 50);
+    buzzer.force_beep(1, 50);
 
     log_init_status(lora.begin(), "LoRa");
     diagnose_boot_reason();  // Diagnostics
@@ -93,10 +94,8 @@ void setup() {
         sd.save(); 
     }
 
-    // buzzer.force_beep(1, 50);
-    delay(500);
-
-    servo.writeAngle(SERVO_STARTING_ANGLE);
+    buzzer.force_beep(1, 50);
+    delay(100);
 
     /* === Calibration === */
     altimeter.calibrate();
@@ -109,7 +108,7 @@ void setup() {
         lora.send(sensor_data);
     }
 
-    // buzzer.force_beep(3, 50);
+    buzzer.force_beep(3, 50);
 }
 
 
@@ -154,14 +153,14 @@ void loop() {
                 servo.writeAngle(SERVO_ENDING_ANGLE);
             }
             
-            // if (millis() - stability_last_check > INTERVAL_FAST) {
-            //     if (stability_check()) {
-            //         flight.current_state = LANDED;
-            //         flight.landed_time = millis();
-            //         lora.send("LANDING CONFIRMED");
-            //     }
-            //     stability_last_check = millis();
-            // }
+            if (millis() - stability_last_check > INTERVAL_FAST) {
+                if (stability_check()) {
+                    flight.current_state = LANDED;
+                    flight.landed_time = millis();
+                    lora.send("LANDING CONFIRMED");
+                }
+                stability_last_check = millis();
+            }
             break;
         }
 

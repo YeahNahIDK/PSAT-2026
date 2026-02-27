@@ -3,7 +3,10 @@
 #include <Arduino.h>
 
 // CMT-8504 Resonance Freq
-#define BUZZER_FREQ 4000 
+#define BUZZER_FREQ                 4000 
+#define BUZZER_TIMER_RESOLUTION     8
+#define BUZZER_TIMER_CHANNEL        5
+#define BUZZER_DUTY_CYCLE           128  // 50% duty cycle creates the loudest square wave.
 
 static const char *TAG = "BUZZER";
 
@@ -12,18 +15,20 @@ BuzzerDriver::BuzzerDriver(int pin)
 }
 
 void BuzzerDriver::begin() {
-    pinMode(_pin, OUTPUT);
+    ledcAttachChannel(_pin, BUZZER_FREQ, BUZZER_TIMER_RESOLUTION, BUZZER_TIMER_CHANNEL);
     off();
-    ESP_LOGI(TAG, "Initialized on Pin %d, Freq %dHz (Native Tone API)", _pin, BUZZER_FREQ);
+    
+    ESP_LOGI(TAG, "Initialized on Pin %d, Freq %dHz (LEDC API)", _pin, BUZZER_FREQ);
 }
 
 void BuzzerDriver::on() {
-    tone(_pin, BUZZER_FREQ);
+    ledcWrite(_pin, BUZZER_DUTY_CYCLE); 
     _isActive = true;
-}
+}                                                                                       
 
 void BuzzerDriver::off() {
-    noTone(_pin);
+    // 0 duty cycle mutes the buzzer
+    ledcWrite(_pin, 0);
     _isActive = false;
 }
 
