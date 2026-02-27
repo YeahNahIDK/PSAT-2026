@@ -303,7 +303,7 @@ void send_gps() {
     float lon = has_fix ? gps.getLongitude() : 0.0;
 
     // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
-    sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n", 
+    sprintf(gps_data, "#%c,%02d,%02d,%02d,%c,%02d,%.5f,%.5f,%.1f\n", 
             team_char, 
             gps.getHour(), gps.getMinute(), gps.getSecond(), 
             fix_status, 
