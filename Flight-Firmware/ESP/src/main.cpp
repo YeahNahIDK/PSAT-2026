@@ -159,6 +159,7 @@ void loop() {
 
                 char apogee_result[64] = {0};
                 sprintf(apogee_result, "APOGEE CONFIRMED AT %.2fm", flight.max_altitude);
+                delay(50);  // Prevents packet being missed
                 lora.send(apogee_result);
             }
             break;
