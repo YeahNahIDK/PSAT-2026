@@ -12,6 +12,11 @@ bool LoRaHandler::begin() {
         LORA_CR, LORA_SYNC_WORD, LORA_POWER, LORA_PREAMBLE, LORA_GAIN);
 
     if (state == RADIOLIB_ERR_NONE) {
+        /* Forces the hidden default settings */
+        radio->explicitHeader();
+        radio->setCRC(true);
+        radio->invertIQ(false);
+
         Serial.println("Success!");
         return true;
     } else {

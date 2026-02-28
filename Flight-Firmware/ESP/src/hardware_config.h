@@ -31,7 +31,7 @@
 
 #define LORA_FREQUENCY              915         // MHz
 #define LORA_BANDWIDTH              125         // KHz
-#define LORA_SF                     10          // Spreading Factor
+#define LORA_SF                     8           // Spreading Factor
 #define LORA_CR                     5           // Coding Rate: 4/5
 #define LORA_SYNC_WORD              0x12
 #define LORA_POWER                  14          // dBm
