@@ -1,24 +1,29 @@
-#pragma once
-#include <Arduino.h>
-#include <FS.h>
-#include <SD.h>
+#ifndef SD_DRIVER_H
+#define SD_DRIVER_H
+
 #include <SPI.h>
+#include "SdFat.h"
 
 class SdDriver {
-private:
-    int _csPin;
-    bool _isInitialized;
-    File _logFile; // Keeps the file open continuously
-
 public:
     SdDriver(int csPin);
     bool begin(SPIClass &spiBus);
-    
-    // Core logging methods
     bool openLog(const char* path);
     void logData(const char* data);
+    void save();
+    void closeLog();
+
+    void getErrorDetails(char* buffer);
+
+private:
+    int _csPin;
+    bool _isInitialized;
     
-    // Manual overrides
-    void save();   
-    void closeLog(); 
+    // Universal file system object
+    SdFs _sd;          
+    
+    // Universal file object
+    FsFile _logFile;   
 };
+
+#endif

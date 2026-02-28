@@ -14,7 +14,7 @@
 
 /* === PERIPHERAL CHIP SELECTS (SPI) === */
 #define PIN_LORA_CS                 21
-#define PIN_SD_CS                   3
+#define PIN_SD_CS                   3   
 
 
 /* === INDIVIDUAL COMPONENTS === */

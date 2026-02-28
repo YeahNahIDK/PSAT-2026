@@ -73,6 +73,15 @@ void setup() {
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
     /* === Hardware Initialisation === */
+    SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
+    for(int i = 0; i < 10; i++) {
+        SPI.transfer(0xFF);
+    }
+    SPI.endTransaction();
+    
+    // Brief pause to let the SD card process the wake-up
+    delay(10);
+
     buzzer.begin();
     servo.begin();
     servo.writeAngle(SERVO_STARTING_ANGLE);
@@ -84,14 +93,25 @@ void setup() {
     log_init_status(gps.begin(), "GPS");
     bool altimeter_init = log_init_status(altimeter.begin(), "Altimeter");
     bool imu_init = log_init_status(imu.begin(), "IMU");
-    log_init_status(sd.begin(SPI), "SD");
 
-    if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
+    bool sd_success = sd.begin(SPI);
+    log_init_status(sd_success, "SD");
+    delay(250);
+    if (!sd_success) {
+        char sd_error_msg[64] = {0};
+        sd.getErrorDetails(sd_error_msg);
+        
+        lora.send(sd_error_msg);
+        delay(100);
+    } 
+    else {
+        if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
         sd.logData("Time (ms), Altitude (m), Temp (°C), "
            "Accel_X (G), Accel_Y (G), Accel_Z (G), "
            "Gyro_X (dps), Gyro_Y (dps), Gyro_Z (dps), "
            "Latitude, Longitude\n");
         sd.save(); 
+    }
     }
 
     buzzer.force_beep(1, 50);

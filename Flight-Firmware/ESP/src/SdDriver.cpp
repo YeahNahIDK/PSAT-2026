@@ -3,8 +3,9 @@
 SdDriver::SdDriver(int csPin) : _csPin(csPin), _isInitialized(false) {}
 
 bool SdDriver::begin(SPIClass &spiBus) {
-    if (!SD.begin(_csPin, spiBus)) {
-        Serial.println("SD Mount Failed");
+    SdSpiConfig spiConfig(_csPin, SHARED_SPI, SD_SCK_MHZ(1), &spiBus);
+
+    if (!_sd.begin(spiConfig)) {
         return false;
     }
     _isInitialized = true;
@@ -14,28 +15,42 @@ bool SdDriver::begin(SPIClass &spiBus) {
 bool SdDriver::openLog(const char* path) {
     if (!_isInitialized) return false;
     
-    // Open the file once in append mode and leave it open
-    _logFile = SD.open(path, FILE_APPEND);
-    return _logFile == true;
+    // Creates the file if it doesn't exist, opens for writing, and moves to the end.
+    if (!_logFile.open(path, O_WRITE | O_CREAT | O_AT_END)) {
+        return false;
+    }
+    return true;
 }
 
 void SdDriver::logData(const char* data) {
     if (_logFile) {
-        // Writes to the internal RAM buffer. 
-        // When it hits 512 bytes, it automatically physically saves to the SD card.
         _logFile.print(data); 
     }
 }
 
 void SdDriver::save() {
     if (_logFile) {
-        // Manually forces a physical write, regardless of buffer size
-        _logFile.flush(); 
+        // Forces the buffer to physically write to the SD card.
+        _logFile.sync(); 
     }
 }
 
 void SdDriver::closeLog() {
     if (_logFile) {
         _logFile.close();
+    }
+}
+
+void SdDriver::getErrorDetails(char* buffer) {
+    // sdErrorCode() and sdErrorData() are built into SdFat
+    uint8_t code = _sd.sdErrorCode();
+    uint8_t data = _sd.sdErrorData();
+
+    if (code == 0) {
+        // If the hardware code is 0 but it still failed, it's a file system issue.
+        sprintf(buffer, "SD ERR: File System (Not FAT32/exFAT)");
+    } else {
+        // Otherwise, it's a hardware/SPI/wiring issue. We format it as Hex.
+        sprintf(buffer, "SD ERR: HW Code 0x%X, Data 0x%X", code, data);
     }
 }
