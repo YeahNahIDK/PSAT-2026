@@ -17,6 +17,10 @@ bool LoRaHandler::begin() {
         radio->setCRC(true);
         radio->invertIQ(false);
 
+        radio->sleep();
+        pinMode(PIN_LORA_CS, OUTPUT);
+        digitalWrite(PIN_LORA_CS, HIGH);
+
         Serial.println("Success!");
         return true;
     } else {
@@ -31,6 +35,7 @@ bool LoRaHandler::send(String message) {
 
     // The transmit method blocks until transmission is finished
     int state = radio->transmit(message);
+    radio->sleep();
 
     if (state == RADIOLIB_ERR_NONE) {
         Serial.println("Success!");

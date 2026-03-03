@@ -3,7 +3,7 @@
 SdDriver::SdDriver(int csPin) : _csPin(csPin), _isInitialized(false) {}
 
 bool SdDriver::begin(SPIClass &spiBus) {
-    SdSpiConfig spiConfig(_csPin, SHARED_SPI, SD_SCK_MHZ(1), &spiBus);
+    SdSpiConfig spiConfig(_csPin, SHARED_SPI, SD_SCK_MHZ(4), &spiBus);
 
     if (!_sd.begin(spiConfig)) {
         return false;

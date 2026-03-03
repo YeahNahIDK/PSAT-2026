@@ -72,16 +72,13 @@ void setup() {
     SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
-    /* === Hardware Initialisation === */
-    SPI.beginTransaction(SPISettings(400000, MSBFIRST, SPI_MODE0));
-    for(int i = 0; i < 10; i++) {
-        SPI.transfer(0xFF);
-    }
-    SPI.endTransaction();
-    
-    // Brief pause to let the SD card process the wake-up
-    delay(10);
+    pinMode(PIN_SD_CS, OUTPUT);
+    digitalWrite(PIN_SD_CS, HIGH);
 
+    pinMode(PIN_LORA_CS, OUTPUT); 
+    digitalWrite(PIN_LORA_CS, HIGH);
+
+    /* === Hardware Initialisation === */
     buzzer.begin();
     servo.begin();
     servo.writeAngle(SERVO_STARTING_ANGLE);
@@ -94,6 +91,10 @@ void setup() {
     bool altimeter_init = log_init_status(altimeter.begin(), "Altimeter");
     bool imu_init = log_init_status(imu.begin(), "IMU");
 
+    digitalWrite(PIN_LORA_CS, HIGH); 
+    delay(10);
+
+    delay(500);
     bool sd_success = sd.begin(SPI);
     log_init_status(sd_success, "SD");
     delay(250);
