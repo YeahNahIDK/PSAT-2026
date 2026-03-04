@@ -138,8 +138,9 @@ void loop() {
             interval_gps(INTERVAL_VERY_SLOW);
 
             if (flight.altitude >= STATE_TRANSITION_ALT) {
-                flight.current_state = ASCENDING;
                 flight.start_time = millis();
+                flight.current_state = ASCENDING;
+                lora.send("ASCEND");
             }
             break;
         }
@@ -151,11 +152,8 @@ void loop() {
             flight.apogee = apogee_detect();
             if (flight.apogee) {
                 flight.current_state = DESCENDING;
-
-                char apogee_result[64] = {0};
-                sprintf(apogee_result, "APOGEE CONFIRMED AT %.2fm", flight.max_altitude);
                 delay(50);  // Prevents packet being missed
-                lora.send(apogee_result);
+                lora.send("DESCEND");
             }
             break;
         }
@@ -173,7 +171,7 @@ void loop() {
                 if (stability_check()) {
                     flight.current_state = LANDED;
                     flight.landed_time = millis();
-                    lora.send("LANDING CONFIRMED");
+                    lora.send("LANDED");
                 }
                 stability_last_check = millis();
             }
