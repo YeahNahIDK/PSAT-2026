@@ -2,10 +2,14 @@
 
 
 LoRaHandler::LoRaHandler() {
-    radio = new SX1276(new Module(PIN_LORA_CS, PIN_LORA_DIO0, PIN_LORA_RST, PIN_LORA_DIO1, SPI));
+    radio = nullptr;
 }
 
 bool LoRaHandler::begin() {
+    if (radio == nullptr) {
+        Module* mod = new Module(PIN_LORA_CS, PIN_LORA_DIO0, PIN_LORA_RST, PIN_LORA_DIO1, SPI);
+        radio = new SX1276(mod);
+    }
     Serial.print("[LoRa] Initializing ... ");
     
     int state = radio->begin(LORA_FREQUENCY, LORA_BANDWIDTH, LORA_SF,

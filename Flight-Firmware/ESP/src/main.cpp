@@ -69,16 +69,12 @@ void setup() {
     xTaskCreate(heartbeat_task, "heartbeat", 1024, NULL, 1, NULL);  // Diagnostics
 
     /* === Communication === */
-    SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+    SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI, -1);
     Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
 
-    pinMode(PIN_SD_CS, OUTPUT);
-    digitalWrite(PIN_SD_CS, HIGH);
-
-    pinMode(PIN_LORA_CS, OUTPUT); 
-    digitalWrite(PIN_LORA_CS, HIGH);
-
     /* === Hardware Initialisation === */
+    bool sd_success = sd.begin(SPI);
+    
     buzzer.begin();
     servo.begin();
     servo.writeAngle(SERVO_STARTING_ANGLE);
@@ -91,11 +87,9 @@ void setup() {
     bool altimeter_init = log_init_status(altimeter.begin(), "Altimeter");
     bool imu_init = log_init_status(imu.begin(), "IMU");
 
-    digitalWrite(PIN_LORA_CS, HIGH); 
     delay(10);
 
     delay(500);
-    bool sd_success = sd.begin(SPI);
     log_init_status(sd_success, "SD");
     delay(250);
     if (!sd_success) {
@@ -107,7 +101,7 @@ void setup() {
     } 
     else {
         if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
-        sd.logData("Time (ms), Altitude (m), Temp (°C), "
+        sd.logData("Time (ms), Altitude (m), Temp (C), "
            "Accel_X (G), Accel_Y (G), Accel_Z (G), "
            "Gyro_X (dps), Gyro_Y (dps), Gyro_Z (dps), "
            "Latitude, Longitude\n");
