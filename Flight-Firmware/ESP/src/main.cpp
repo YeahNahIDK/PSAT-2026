@@ -101,10 +101,7 @@ void setup() {
     } 
     else {
         if (log_init_status(sd.openLog("/flight_data.csv"), "SD Write")) {
-        sd.logData("Time (ms), Altitude (m), Temp (C), "
-           "Accel_X (G), Accel_Y (G), Accel_Z (G), "
-           "Gyro_X (dps), Gyro_Y (dps), Gyro_Z (dps), "
-           "Latitude, Longitude\n");
+        sd.logData("Time_ms,Latitude,Longitude,Altitude_m,Temp_C,Pressure_Pa,Acc_X,Acc_Y,Acc_Z,Gyro_X,Gyro_Y,Gyro_Z\n");
         sd.save(); 
     }
     }
@@ -129,7 +126,9 @@ void setup() {
 
 void loop() {
     gps.update();
-    buzzer.update();    
+    buzzer.update();
+    imu.update();
+  
     flight.altitude = altimeter.getAltitude();
     flight.temperature = altimeter.getTemperature();
 
@@ -321,7 +320,7 @@ void send_gps() {
     float lon = has_fix ? gps.getLongitude() : 0.0;
 
     // Format: #C XX:XX:XX UTC; Y; ZZ; -XXX.XXXXX,-XXX.XXXXX; XXXXX.Xm\n
-    sprintf(gps_data, "#%c,%02d,%02d,%02d,%c,%02d,%.5f,%.5f,%.1f\n", 
+    sprintf(gps_data, "#%c %02d:%02d:%02d UTC; %c; %02d; %.5f,%.5f; %.1fm\n",
             team_char, 
             gps.getHour(), gps.getMinute(), gps.getSecond(), 
             fix_status, 
@@ -337,28 +336,37 @@ void sd_write_data() {
     char log_buffer[256];
     IMUData imu_data = imu.getData();
     snprintf(log_buffer, sizeof(log_buffer), 
-            "%lu, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.6f, %.6f\n",
-            millis() - flight.start_time,   // Time (ms)
-            flight.altitude,                // Altitude (m)
-            flight.temperature,             // Temp (°C)
-            imu_data.accX,                  // Accel X (G)
-            imu_data.accY,                  // Accel Y (G)
-            imu_data.accZ,                  // Accel Z (G)
-            imu_data.gyrX,                  // Gyro X (dps)
-            imu_data.gyrY,                  // Gyro Y (dps)
-            imu_data.gyrZ,                  // Gyro Z (dps)
-            gps.getLatitude(),              // Latitude
-            gps.getLongitude()              // Longitude
-    );
+        "%lu,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+        millis() - flight.start_time,   // 1. Time (ms)
+        gps.getLatitude(),              // 2. Latitude (Moved)
+        gps.getLongitude(),             // 3. Longitude (Moved)
+        flight.altitude,                // 4. Altitude (m)
+        flight.temperature,             // 5. Temp (°C)
+        altimeter.getPressure(),        // 6. Pressure (Pa)
+        imu_data.accX,                  // 7. Accel X (G)
+        imu_data.accY,                  // 8. Accel Y (G)
+        imu_data.accZ,                  // 9. Accel Z (G)
+        imu_data.gyrX,                  // 10. Gyro X (dps) 
+        imu_data.gyrY,                  // 11. Gyro Y (dps)
+        imu_data.gyrZ                   // 12. Gyro Z (dps)
+);
     sd.logData(log_buffer);
 }
 
 
 void interval_sd(int time_interval) {
     static unsigned long last_write = 0;
+    static int counter = 0;
+
     if (millis() - last_write > time_interval) {
         last_write = millis();
-        sd_write_data();   
+        counter++;
+        sd_write_data();
+    }
+
+    if (counter >= SD_DATA_SAVE_INTERVAL) {
+        counter = 0;
+        sd.save();
     }
 }
 
