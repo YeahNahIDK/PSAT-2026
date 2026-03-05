@@ -68,7 +68,7 @@
 #define STABILITY_DETECT_MS         (10 * 1000)
 #define APOGEE_MAX_VELOCITY         210         // ms⁻¹
 #define APOGEE_DETECT_COUNT         5
-#define APOGEE_DROP_THRESHOLD       2
+#define APOGEE_DROP_THRESHOLD       4
 #define SD_DATA_SAVE_INTERVAL       25          // Number of writes
 
 /* Polling rates (ms) */

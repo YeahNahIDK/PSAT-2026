@@ -139,6 +139,7 @@ void loop() {
             if (flight.altitude >= STATE_TRANSITION_ALT) {
                 flight.start_time = millis();
                 flight.current_state = ASCENDING;
+                delay(50);  // Prevents packet being missed
                 lora.send("ASCEND");
             }
             break;
@@ -151,7 +152,7 @@ void loop() {
             flight.apogee = apogee_detect();
             if (flight.apogee) {
                 flight.current_state = DESCENDING;
-                delay(50);  // Prevents packet being missed
+                delay(50);
                 lora.send("DESCEND");
             }
             break;
@@ -170,6 +171,7 @@ void loop() {
                 if (stability_check()) {
                     flight.current_state = LANDED;
                     flight.landed_time = millis();
+                    delay(50);
                     lora.send("LANDED");
                 }
                 stability_last_check = millis();
