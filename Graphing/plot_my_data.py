@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Load CSV
 script_location = Path(__file__).resolve().parent
-df = pd.read_csv(script_location / "test-data.csv")
+df = pd.read_csv(script_location / "processed_flight_data.csv")
 
 t = df["Time"].astype(float).to_numpy()
 
@@ -21,9 +21,9 @@ sc = ax.scatter(df["Disp_X"], df["Disp_Y"], df["Disp_Z"], c=acc_mag, cmap="plasm
 cbar = fig.colorbar(sc, ax=ax, pad=0.1)
 cbar.set_label("Acceleration Magnitude (m/s²)", rotation=270, labelpad=20)
 
-x_range = df["Disp_X"].max() - df["Disp_X"].min()
-y_range = df["Disp_Y"].max() - df["Disp_Y"].min()
-z_range = df["Disp_Z"].max() - df["Disp_Z"].min()
+x_range = df["Disp_X"].max() - df["Disp_X"].min() or 1.0
+y_range = df["Disp_Y"].max() - df["Disp_Y"].min() or 1.0
+z_range = df["Disp_Z"].max() - df["Disp_Z"].min() or 1.0
 ax.set_box_aspect((max(x_range,1e-6), max(y_range,1e-6), max(z_range,1e-6)))
 
 ax.set_xlabel("Disp_X")

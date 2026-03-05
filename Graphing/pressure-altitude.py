@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Getting annoying error, this directly finds the directory
 script_location = Path(__file__).resolve().parent
-file_path = script_location / "test-data.csv"
+file_path = script_location / "processed_flight_data.csv"
 
 df = pd.read_csv(file_path)
 fig = plt.figure()
