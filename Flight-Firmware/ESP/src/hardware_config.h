@@ -58,11 +58,11 @@
 #define ADDRESS_BACKUP_ALTIMETER    0x76
 
 /* === SYSTEM DEFINITIONS === */
-#define SERVO_STARTING_ANGLE        15
-#define SERVO_ENDING_ANGLE          0
+#define SERVO_STARTING_ANGLE        108
+#define SERVO_ENDING_ANGLE          88
 #define SERVO_REL_ALTITUDE          150         // How far below apogee (m)
 #define CALIBRATION_READINGS        10
-#define FLIGHT_STATE_INIT           ASCENDING
+#define FLIGHT_STATE_INIT           PRE_LAUNCH
 #define STATE_TRANSITION_ALT        15          // m
 #define STABILITY_MAX_DRIFT         2           // m
 #define STABILITY_DETECT_MS         (10 * 1000)

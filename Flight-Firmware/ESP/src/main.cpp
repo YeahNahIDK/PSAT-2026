@@ -121,6 +121,8 @@ void setup() {
     }
 
     buzzer.force_beep(3, 50);
+
+    lora.send("PRELAUNCH");
 }
 
 
@@ -128,7 +130,7 @@ void loop() {
     gps.update();
     buzzer.update();
     imu.update();
-  
+
     flight.altitude = altimeter.getAltitude();
     flight.temperature = altimeter.getTemperature();
 
@@ -201,7 +203,7 @@ bool log_init_status(bool success, const char* device_name) {
     }
 
     lora.send(setup_results);
-    delay(50);
+    delay(100);
 
     return success;
 }
